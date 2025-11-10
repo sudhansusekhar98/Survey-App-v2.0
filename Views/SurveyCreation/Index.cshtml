@@ -1,0 +1,184 @@
+@model List<SurveyApp.Models.SurveyModel>
+@{
+    ViewData["Title"] = "Survey List";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mt-4">
+                <div class="card-header bg-purple py-2">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6 class="text-white fs-4 pt-1">
+                                Survey Management
+                            </h6>
+                        </div>
+                        <div class="col-6 text-end">
+                            <a asp-controller="SurveyCreation" asp-action="Create" 
+                               class="btn btn-outline-success text-white border-0">
+                                <i class="bi bi-plus-circle me-2"></i> Add New Survey
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ResultMessage"] != null && !string.IsNullOrWhiteSpace(TempData["ResultMessage"]?.ToString()))
+                    {
+                        <div class="alert alert-@TempData["ResultType"] alert-dismissible fade show" role="alert">
+                            @Html.Raw(TempData["ResultMessage"])
+                            <button type="button" class="btn-close btn-sm align-top" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <div class="table-responsive text-nowrap mt-4">
+                        <table class="datatables-basic table table-hover table-bordered ">
+                            <thead>
+                                <tr class="text-nowrap fw-semibold table-header">
+                                    <th class="px-2 py-3">#</th>
+                                    <th class="px-2 py-3">Survey ID</th>
+                                    <th class="px-2 py-3">Survey Name</th>
+                                    <th class="px-2 py-3">Implementation Type</th>
+                                    <th class="px-2 py-3">Survey Date</th>
+                                    <th class="px-2 py-3">Team Name</th>
+                                    <th class="px-2 py-3">Location</th>
+                                    <th class="px-2 py-3">Status</th>
+                                    <th class="px-2 py-3" style="width:100px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="table-border-bottom-0">
+                                @if (Model != null && Model.Count > 0)
+                                {
+                                    int srNo = 1;
+                                    @foreach (var survey in Model)
+                                    {
+                                        <tr class="small text-nowrap">
+                                            <td class="px-2 py-1">@srNo</td>
+                                            <td class="px-2 py-1">@survey.SurveyId</td>
+                                            <td class="px-2 py-1">@survey.SurveyName</td>
+                                            <td class="px-2 py-1">@survey.ImplementationType</td>
+                                            <td class="px-2 py-1">@(survey.SurveyDate?.ToString("dd-MMM-yyyy") ?? "-")</td>
+                                            <td class="px-2 py-1">@survey.SurveyTeamName</td>
+                                            <td class="px-2 py-1">@survey.LocationSiteName, @survey.CityDistrict</td>
+                                            <td class="px-2 py-1">
+                                                <span class="badge bg-@(survey.SurveyStatus == "Pending" ? "secondary" : 
+                                                                        survey.SurveyStatus == "In Progress" ? "warning" : 
+                                                                        survey.SurveyStatus == "Completed" ? "success" :
+                                                                        survey.SurveyStatus == "Created" ? "primary" : "danger")">
+                                                    @survey.SurveyStatus
+                                                </span>
+                                            </td>
+                                            <td class="px-2 py-1">
+                                                <a asp-controller="SurveyCreation" 
+                                                asp-action="Edit" 
+                                                asp-route-id="@survey.SurveyId" 
+                                                class="btn btn-sm btn-primary" 
+                                                title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-primary"
+                                                        title="View"
+                                                        onclick="openSurveyDetailsModal(@survey.SurveyId)">
+                                                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        srNo++;
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="9" class="text-center py-4">
+                                            <i class="bi bi-inbox fs-1 text-muted"></i>
+                                            <p class="text-muted">No surveys found. Click "Add New Survey" to create one.</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" id="editModalContent"></div>
+  </div>
+</div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    <script>
+        function openEditModal(id) {
+            var url = '@Url.Action("Edit", "SurveyCreation")' + '/' + id;
+            $.ajax({
+                url: url,
+                type: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(html) {
+                    $('#editModalContent').html(html);
+                    var modalEl = document.getElementById('editModal');
+                    var modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                },
+                error: function() {
+                    alert('Failed to load edit form.');
+                }
+            });
+        }
+
+        function openSurveyDetailsModal(id) {
+            var url = '/SurveyCreation?handler=SurveyDetailModal&id=' + id;
+            $.ajax({
+                url: url,
+                type: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                success: function(html) {
+                    $('#editModalContent').html(html);
+                    var modalEl = document.getElementById('editModal');
+                    var modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                },
+                error: function() {
+                    alert('Failed to load survey details.');
+                }
+            });
+        }
+
+           function confirmDelete(surveyId, surveyName) {
+            if (!confirm('Are you sure you want to delete the survey "' + surveyName + '"?')) return;
+            
+            var token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Delete", "SurveyCreation")',
+                data: {
+                    id: surveyId,
+                    __RequestVerificationToken: token
+                },
+                success: function (response) {
+                    if (response.success) {
+                        // nicer UX: show message then remove row or reload
+                        alert(response.message);
+                        location.reload(); // or remove the row from DOM
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    alert('An error occurred while deleting the survey: ' + (xhr.responseJSON?.message || error));
+                }
+            });
+        }
+
+    </script>
+}
+

@@ -1,0 +1,195 @@
+﻿
+@model List<SurveyApp.Models.SurveyLocationModel>
+@{
+    ViewData["Title"] = "Survey Locations";
+    var editId = Convert.ToInt32(Context.Request.Query["editId"]);
+    var isEdit = editId > 0;
+    var editLocation = isEdit ? Model.FirstOrDefault(l => l.LocID == editId) : null;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mt-4">
+                <div class="card-header bg-purple py-2">
+                    <div class="row">
+                        <div class="col-6">
+                            <h6 class="text-white fs-4 pt-1">Survey Locations</h6>
+                        </div>
+                        <div class="col-6 text-end">
+                            <button class="btn btn-outline-success text-white border-0" onclick="showCreateForm()">
+                                <i class="bi bi-plus-circle me-2"></i> Add New Location
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ResultMessage"] != null && !string.IsNullOrWhiteSpace(TempData["ResultMessage"]?.ToString()))
+                    {
+                        <div class="alert alert-@TempData["ResultType"] alert-dismissible fade show" role="alert">
+                            @Html.Raw(TempData["ResultMessage"])
+                            <button type="button" class="btn-close btn-sm align-top" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    }
+
+                    <!-- Inline Create/Edit Form -->
+                    <div id="locationFormContainer" style="display:none; margin-top:2rem;">
+                        <form method="post" id="locationForm">
+                            <input type="hidden" name="LocID" value="@(isEdit ? editLocation?.LocID : 0)" />
+                            <div class="row gx-4 gy-2">
+                                
+                                <div class="col-md-4">
+                                    <div class="form-custom-floating">
+                                        <input type="number" name="SurveyID" class="form-control" placeholder="Survey ID" value="@(isEdit ? editLocation?.SurveyID : "")" required />
+                                        <label>Survey ID</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-custom-floating">
+                                        <input type="text" name="LocName" class="form-control" placeholder="Location Name" value="@(isEdit ? editLocation?.LocName : "")" required />
+                                        <label>Location Name</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-custom-floating">
+                                        <input type="number" step="any" name="LocLat" class="form-control" placeholder="Latitude" value="@(isEdit ? editLocation?.LocLat : "")" />
+                                        <label>Latitude</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-custom-floating">
+                                        <input type="number" step="any" name="LocLog" class="form-control" placeholder="Longitude" value="@(isEdit ? editLocation?.LocLog : "")" />
+                                        <label>Longitude</label>
+                                    </div>
+                                </div>
+                                <div class="col-12 mb-2">
+                                    <button type="button" class="btn btn-info" onclick="fetchLocation()">
+                                        <i class="bi bi-geo-alt-fill me-2"></i>Fetch Location via GPS
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-custom-floating">
+                                        <input type="number" name="CreateBy" class="form-control" placeholder="Created By" value="@(isEdit ? editLocation?.CreateBy : "")" />
+                                        <label>Created By</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-custom-floating">
+                                        <input type="date" name="CreateOn" class="form-control" placeholder="Created On" value="@(isEdit ? editLocation?.CreateOn?.ToString("yyyy-MM-dd") : "")" />
+                                        <label>Created On</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check mt-4">
+                                        <input type="checkbox" name="Isactive" class="form-check-input" @(isEdit && editLocation?.Isactive == true ? "checked" : "") />
+                                        <label class="form-check-label">Active</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col text-end">
+                                    <button type="submit" class="btn btn-primary me-2"><i class="bi bi-check2-circle me-2"></i> @(isEdit ? "Update" : "Create")</button>
+                                    <button type="button" class="btn btn-danger" onclick="hideForm()"><i class="bi bi-slash-circle me-2"></i> Cancel</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-responsive text-nowrap mt-4">
+                        <table class="table table-hover table-bordered">
+                            <thead>
+                                <tr class="text-nowrap fw-semibold table-header">
+                                    <th class="px-2 py-3">Sl No.</th>
+                                    <th class="px-2 py-3">Location ID</th>
+                                    <th class="px-2 py-3">Survey ID</th>
+                                    <th class="px-2 py-3">Location Name</th>
+                                    <th class="px-2 py-3">Latitude</th>
+                                    <th class="px-2 py-3">Longitude</th>
+                                    <th class="px-2 py-3">Created On</th>
+                                    <th class="px-2 py-3">Created By</th>
+                                    <th class="px-2 py-3">Active</th>
+                                    <th class="px-2 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Count > 0)
+                                {
+                                    int srNo = 1;
+                                    foreach (var loc in Model)
+                                    {
+                                        <tr>
+                                            <td class="px-2 py-2">@srNo</td>
+                                            <td class="px-2 py-2">@loc.LocID</td>
+                                            <td class="px-2 py-2">@loc.SurveyID</td>
+                                            <td class="px-2 py-2">@loc.LocName</td>
+                                            <td class="px-2 py-2">@loc.LocLat</td>
+                                            <td class="px-2 py-2">@loc.LocLog</td>
+                                            <td class="px-2 py-2">@loc.CreateOn?.ToString("dd-MMM-yyyy")</td>
+                                            <td class="px-2 py-2">@loc.CreateBy</td>
+                                            <td class="px-2 py-2">
+                                                <span class="badge @(loc.Isactive ? "bg-success" : "bg-secondary")">
+                                                    @(loc.Isactive ? "Active" : "Inactive")
+                                                </span>
+                                            </td>
+                                            <td class="px-2 py-2">
+                                                <button class="btn btn-sm btn-primary" title="Edit" onclick="showEditForm(@loc.LocID)">
+                                                    <i class="bi bi-pencil-square"></i> Edit
+                                                </button>
+                                                <button class="btn btn-sm btn-danger" title="Delete" onclick="deleteLocation(@loc.LocID)">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        srNo++;
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="10" class="text-center py-4">
+                                            <i class="bi bi-inbox fs-1 text-muted"></i>
+                                            <p class="text-muted">No locations found. Click "Add New Location" to create one.</p>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function showCreateForm() {
+        document.getElementById('locationFormContainer').style.display = 'block';
+        document.getElementById('locationForm').reset();
+    }
+    function hideForm() {
+        document.getElementById('locationFormContainer').style.display = 'none';
+    }
+    function showEditForm(id) {
+        window.location.search = '?editId=' + id;
+        document.getElementById('locationFormContainer').style.display = 'block';
+    }
+    function deleteLocation(id) {
+        if (confirm('Are you sure you want to delete this location?')) {
+            alert('Delete logic for LocID ' + id + ' goes here.');
+        }
+    }
+
+    function fetchLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                document.querySelector('input[name="LocLat"]').value = position.coords.latitude;
+                document.querySelector('input[name="LocLog"]').value = position.coords.longitude;
+            }, function (error) {
+                alert('Unable to fetch location: ' + error.message);
+            });
+        } else {
+            alert('Geolocation is not supported by this browser.');
+        }
+    }
+</script>
