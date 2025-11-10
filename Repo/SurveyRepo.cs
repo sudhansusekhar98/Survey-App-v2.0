@@ -1,4 +1,6 @@
+using AnalyticaDocs.Models;
 using AnalyticaDocs.Util;
+using Humanizer;
 using Microsoft.Data.SqlClient;
 using SurveyApp.Models;
 using System.Data;
@@ -74,26 +76,9 @@ namespace SurveyApp.Repo
             try
             {
                 using var con = new SqlConnection(DBConnection.ConnectionString);
-                using var cmd = new SqlCommand(@"
-                    UPDATE dbo.Survey 
-                    SET SurveyName = @SurveyName,
-                        ImplementationType = @ImplementationType,
-                        SurveyDate = @SurveyDate,
-                        SurveyTeamName = @SurveyTeamName,
-                        SurveyTeamContact = @SurveyTeamContact,
-                        AgencyName = @AgencyName,
-                        LocationSiteName = @LocationSiteName,
-                        CityDistrict = @CityDistrict,
-                        ZoneSectorWardNumber = @ZoneSectorWardNumber,
-                        ScopeOfWork = @ScopeOfWork,
-                        Latitude = @Latitude,
-                        Longitude = @Longitude,
-                        MapMarking = @MapMarking,
-                        SurveyStatus = @SurveyStatus,
-                        CreatedBy = @CreatedBy
-                    WHERE SurveyId = @SurveyId", con);
-
-                cmd.CommandType = CommandType.Text;
+                using var cmd = new SqlCommand("dbo.SpSurvey", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 8);
                 cmd.Parameters.AddWithValue("@SurveyId", survey.SurveyId);
                 cmd.Parameters.AddWithValue("@SurveyName", survey.SurveyName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ImplementationType", survey.ImplementationType ?? (object)DBNull.Value);
@@ -127,15 +112,12 @@ namespace SurveyApp.Repo
             try
             {
                 using var con = new SqlConnection(DBConnection.ConnectionString);
-                using var cmd = new SqlCommand(@"
-                    SELECT SurveyId, SurveyName, ImplementationType, SurveyDate,
-                           SurveyTeamName, SurveyTeamContact, AgencyName, LocationSiteName,
-                           CityDistrict, ZoneSectorWardNumber, ScopeOfWork, Latitude, Longitude,
-                           MapMarking, SurveyStatus, CreatedBy
-                    FROM dbo.Survey
-                    ORDER BY SurveyDate DESC", con);
+                using var cmd = new SqlCommand("dbo.SpSurvey", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 2);
 
                 con.Open();
+
                 using var adapter = new SqlDataAdapter(cmd);
                 var dt = new DataTable();
                 adapter.Fill(dt);
@@ -155,14 +137,9 @@ namespace SurveyApp.Repo
             try
             {
                 using var con = new SqlConnection(DBConnection.ConnectionString);
-                using var cmd = new SqlCommand(@"
-                    SELECT SurveyId, SurveyName, ImplementationType, SurveyDate,
-                           SurveyTeamName, SurveyTeamContact, AgencyName, LocationSiteName,
-                           CityDistrict, ZoneSectorWardNumber, ScopeOfWork, Latitude, Longitude,
-                           MapMarking, SurveyStatus, CreatedBy
-                    FROM dbo.Survey
-                    WHERE SurveyId = @SurveyId", con);
-
+                using var cmd = new SqlCommand("dbo.SpSurvey", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 7);
                 cmd.Parameters.AddWithValue("@SurveyId", surveyId);
 
                 con.Open();
@@ -201,5 +178,136 @@ namespace SurveyApp.Repo
                 throw;
             }
         }
+
+        public List<SurveyLocationModel> GetSurveyLocationById(Int64 surveyId)
+        {
+            var locations = new List<SurveyLocationModel>();
+            using (var conn = new SqlConnection(DBConnection.ConnectionString))
+            using (var cmd = new SqlCommand("dbo.SpSurvey", conn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 9);
+                cmd.Parameters.AddWithValue("@SurveyID", surveyId);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    var dt = new DataTable();
+                    dt.Load(reader);
+                    locations = SqlDbHelper.DataTableToList<SurveyLocationModel>(dt);
+                }
+            }
+            return locations;
+        }
+
+        public SurveyLocationModel? GetSurveyLocationByLocId(int locId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurvey", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 10); // Assuming SpType 10 for getting location by LocID
+                cmd.Parameters.AddWithValue("@LocID", locId);
+                
+                conn.Open();
+                using var reader = cmd.ExecuteReader();
+                var dt = new DataTable();
+                dt.Load(reader);
+                var locations = SqlDbHelper.DataTableToList<SurveyLocationModel>(dt);
+                return locations.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public bool AddSurveyLocation(SurveyLocationModel location)
+        {
+            try
+            {
+                using var conn = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurvey", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 5);
+                cmd.Parameters.AddWithValue("@SurveyID", location.SurveyID);
+                cmd.Parameters.AddWithValue("@LocName", location.LocName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@LocLat", location.LocLat ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@LocLog", location.LocLog ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@CreatedBy", location.CreateBy ?? (object)DBNull.Value);
+                
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public bool UpdateSurveyLocation(SurveyLocationModel location)
+        {
+            try
+            {
+                using var conn = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurvey", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 12); 
+                cmd.Parameters.AddWithValue("@LocID", location.LocID);
+                cmd.Parameters.AddWithValue("@SurveyID", location.SurveyID);
+                cmd.Parameters.AddWithValue("@LocName", location.LocName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@LocLat", location.LocLat ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@LocLog", location.LocLog ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@Isactive", location.Isactive);
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public bool DeleteSurveyLocation(int locId)
+        {
+            try
+            {
+                using var conn = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurvey", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 11); 
+                cmd.Parameters.AddWithValue("@LocID", locId);
+                
+                conn.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public bool CreateLocationsBySurveyId(Int64 surveyId, List<SurveyLocationModel> locations, int createdBy)
+        {
+            using var conn = new SqlConnection(DBConnection.ConnectionString);
+            conn.Open();
+            foreach (var location in locations)
+            {
+                using var cmd = new SqlCommand("dbo.SpSurvey", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 5);
+                cmd.Parameters.AddWithValue("@SurveyID", surveyId);
+                cmd.Parameters.AddWithValue("@LocName", location.LocName ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@LocLat", location.LocLat ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@LocLog", location.LocLog ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@CreatedBy", createdBy);
+                cmd.ExecuteNonQuery();
+            }
+            return true;
+        }
+
     }
 }

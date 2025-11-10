@@ -59,8 +59,6 @@ namespace AnalyticaDocs.Util
                                 ? Convert.ChangeType(value, propType)
                                 : propType.IsValueType ? Activator.CreateInstance(propType) : null;
                         }
-
-
                         prop.SetValue(obj, safeValue, null);
                     }
                 }
