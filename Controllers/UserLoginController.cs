@@ -15,7 +15,6 @@ namespace AnalyticaDocs.Controllers
         public UserLoginController(IAdmin repository)
         {
             _repository = repository;
-           
         }
         public IActionResult Index()
         {

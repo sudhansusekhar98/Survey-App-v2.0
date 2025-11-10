@@ -620,3 +620,5 @@ D:\VL Access\Survey\Survey App\survey-app-main\obj\Debug\net8.0\refint\SurveyApp
 D:\VL Access\Survey\Survey App\survey-app-main\obj\Debug\net8.0\SurveyApp.pdb
 D:\VL Access\Survey\Survey App\survey-app-main\obj\Debug\net8.0\SurveyApp.genruntimeconfig.cache
 D:\VL Access\Survey\Survey App\survey-app-main\obj\Debug\net8.0\ref\SurveyApp.dll
+D:\VL Access\Survey\Survey App\survey-app-main\obj\Debug\net8.0\SurveyApp.sourcelink.json
+D:\VL Access\Survey\Survey App\survey-app-main\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

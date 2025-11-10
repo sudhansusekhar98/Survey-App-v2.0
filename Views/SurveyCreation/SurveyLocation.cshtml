@@ -1,28 +1,28 @@
-﻿
-@model List<SurveyApp.Models.SurveyLocationModel>
+﻿@model List<SurveyApp.Models.SurveyLocationModel>
 @{
+
     ViewData["Title"] = "Survey Locations";
     var editId = Convert.ToInt32(Context.Request.Query["editId"]);
     var isEdit = editId > 0;
     var editLocation = isEdit ? Model.FirstOrDefault(l => l.LocID == editId) : null;
+    var surveyId = ViewBag.SelectedSurveyId;
+    var surveyName = ViewBag.SelectedSurveyName;
 }
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <div class="card shadow mt-4">
-                <div class="card-header bg-purple py-2">
+                 <div class="card-header bg-purple py-2">
                     <div class="row">
                         <div class="col-6">
-                            <h6 class="text-white fs-4 pt-1">Survey Locations</h6>
+                            <h6 class="text-white fs-4 pt-1">Survey Sub-Locations</h6>
                         </div>
                         <div class="col-6 text-end">
-                            <button class="btn btn-outline-success text-white border-0" onclick="showCreateForm()">
-                                <i class="bi bi-plus-circle me-2"></i> Add New Location
-                            </button>
+                            <h6 class="text-white fs-4 pt-1">@surveyName</h6>
                         </div>
                     </div>
-                </div>
+                </div> 
                 <div class="card-body">
                     @if (TempData["ResultMessage"] != null && !string.IsNullOrWhiteSpace(TempData["ResultMessage"]?.ToString()))
                     {
@@ -33,14 +33,15 @@
                     }
 
                     <!-- Inline Create/Edit Form -->
-                    <div id="locationFormContainer" style="display:none; margin-top:2rem;">
-                        <form method="post" id="locationForm">
+                    <div id="locationFormContainer" style="margin-top:2rem;">
+                        <form asp-action="SurveyLocation" asp-controller="SurveyCreation" method="post" id="locationForm">
+                            @Html.AntiForgeryToken()
                             <input type="hidden" name="LocID" value="@(isEdit ? editLocation?.LocID : 0)" />
                             <div class="row gx-4 gy-2">
                                 
                                 <div class="col-md-4">
                                     <div class="form-custom-floating">
-                                        <input type="number" name="SurveyID" class="form-control" placeholder="Survey ID" value="@(isEdit ? editLocation?.SurveyID : "")" required />
+                                        <input type="number" name="SurveyID" class="form-control" placeholder="Survey ID" value="@(isEdit ? editLocation?.SurveyID : surveyId)" readonly required />
                                         <label>Survey ID</label>
                                     </div>
                                 </div>
@@ -67,35 +68,42 @@
                                         <i class="bi bi-geo-alt-fill me-2"></i>Fetch Location via GPS
                                     </button>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-custom-floating">
-                                        <input type="number" name="CreateBy" class="form-control" placeholder="Created By" value="@(isEdit ? editLocation?.CreateBy : "")" />
-                                        <label>Created By</label>
+                                @if (isEdit)
+                                {
+                                    <div class="col-md-4">
+                                        <div class="form-custom-floating">
+                                            <input type="number" name="CreateBy" class="form-control" placeholder="Created By" value="@editLocation?.CreateBy" readonly />
+                                            <label>Created By</label>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-custom-floating">
-                                        <input type="date" name="CreateOn" class="form-control" placeholder="Created On" value="@(isEdit ? editLocation?.CreateOn?.ToString("yyyy-MM-dd") : "")" />
-                                        <label>Created On</label>
+                                    <div class="col-md-4">
+                                        <div class="form-custom-floating">
+                                            <input type="date" name="CreateOn" class="form-control" placeholder="Created On" value="@editLocation?.CreateOn?.ToString("yyyy-MM-dd")" readonly />
+                                            <label>Created On</label>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-check mt-4">
-                                        <input type="checkbox" name="Isactive" class="form-check-input" @(isEdit && editLocation?.Isactive == true ? "checked" : "") />
-                                        <label class="form-check-label">Active</label>
+                                    <div class="col-md-4">
+                                        <div class="form-check mt-4">
+                                            <!-- Hidden input ensures false is always sent when unchecked -->
+                                            <input type="hidden" name="Isactive" value="false" />
+                                            <input type="checkbox" name="Isactive" class="form-check-input"
+                                                   value="true"
+                                                   @(editLocation?.Isactive == true ? "checked" : "") />
+                                            <label class="form-check-label">Active</label>
+                                        </div>
                                     </div>
-                                </div>
+                                }
                             </div>
                             <div class="row mt-3">
                                 <div class="col text-end">
                                     <button type="submit" class="btn btn-primary me-2"><i class="bi bi-check2-circle me-2"></i> @(isEdit ? "Update" : "Create")</button>
-                                    <button type="button" class="btn btn-danger" onclick="hideForm()"><i class="bi bi-slash-circle me-2"></i> Cancel</button>
+                                    <button type="button" class="btn btn-danger" onclick="cancelForm()"><i class="bi bi-slash-circle me-2"></i> Cancel</button>
                                 </div>
                             </div>
                         </form>
                     </div>
 
-                    <!-- Table -->
+                    <!-- View Table -->
                     <div class="table-responsive text-nowrap mt-4">
                         <table class="table table-hover table-bordered">
                             <thead>
@@ -134,10 +142,10 @@
                                             </td>
                                             <td class="px-2 py-2">
                                                 <button class="btn btn-sm btn-primary" title="Edit" onclick="showEditForm(@loc.LocID)">
-                                                    <i class="bi bi-pencil-square"></i> Edit
+                                                    <i class="bi bi-pencil-square"></i> 
                                                 </button>
                                                 <button class="btn btn-sm btn-danger" title="Delete" onclick="deleteLocation(@loc.LocID)">
-                                                    <i class="bi bi-trash"></i> Delete
+                                                    <i class="bi bi-trash"></i> 
                                                 </button>
                                             </td>
                                         </tr>
@@ -156,27 +164,77 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </div>      
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    function showCreateForm() {
-        document.getElementById('locationFormContainer').style.display = 'block';
-        document.getElementById('locationForm').reset();
+    function cancelForm() {
+        var surveyId = @surveyId;
+        window.location.href = '@Url.Action("SurveyLocation", "SurveyCreation")?surveyId=' + surveyId + '&SurveyName=@surveyName';
     }
-    function hideForm() {
-        document.getElementById('locationFormContainer').style.display = 'none';
-    }
+    
     function showEditForm(id) {
-        window.location.search = '?editId=' + id;
-        document.getElementById('locationFormContainer').style.display = 'block';
+        var surveyId = @surveyId;
+        window.location.href = '@Url.Action("SurveyLocation", "SurveyCreation")?surveyId=' + surveyId + '&SurveyName=@surveyName&editId=' + id;
     }
+    
     function deleteLocation(id) {
         if (confirm('Are you sure you want to delete this location?')) {
-            alert('Delete logic for LocID ' + id + ' goes here.');
+            var surveyId = @surveyId;
+            
+            // Create form and submit
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '@Url.Action("DeleteSurveyLocation", "SurveyCreation")';
+            
+            // Add anti-forgery token
+            var token = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (token) {
+                var tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token.value;
+                form.appendChild(tokenInput);
+            }
+            
+            // Add locId
+            var locIdInput = document.createElement('input');
+            locIdInput.type = 'hidden';
+            locIdInput.name = 'locId';
+            locIdInput.value = id;
+            form.appendChild(locIdInput);
+            
+            // Add surveyId
+            var surveyIdInput = document.createElement('input');
+            surveyIdInput.type = 'hidden';
+            surveyIdInput.name = 'surveyId';
+            surveyIdInput.value = surveyId;
+            form.appendChild(surveyIdInput);
+            
+            document.body.appendChild(form);
+            
+            // Use AJAX instead
+            var formData = new FormData(form);
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                alert('Error deleting location');
+            });
         }
     }
 

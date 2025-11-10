@@ -167,12 +167,97 @@ namespace SurveyApp.Controllers
 
 
         // GET: SurveyCreation/SurveyLocation
-        public IActionResult SurveyLocation()
+        public IActionResult SurveyLocation(Int64 surveyId, string SurveyName, int? editId)
         {
-            // Render the view directly, do NOT redirect
-            var locations = new List<SurveyLocationModel>();
+            // Fetch locations for the selected survey
+            var locations = _surveyRepository.GetSurveyLocationById(surveyId) ?? new List<SurveyLocationModel>();
+            ViewBag.SelectedSurveyId = surveyId;
+            ViewBag.SelectedSurveyName = SurveyName;
             return View("SurveyLocation", locations);
         }
+
+        // POST: SurveyCreation/SurveyLocation - Handle inline create/update form
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SurveyLocation(SurveyLocationModel model)
+        {
+            try
+            {
+                // Get current user from session
+                int createdBy = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
+                model.CreateBy = createdBy;
+
+                bool result;
+                
+                // Check if this is an update or create operation
+                if (model.LocID > 0)
+                {
+                    // Update existing location
+                    result = _surveyRepository.UpdateSurveyLocation(model);
+                    
+                    if (result)
+                    {
+                        TempData["ResultMessage"] = "<strong>Success!</strong> Location updated successfully.";
+                        TempData["ResultType"] = "success";
+                    }
+                    else
+                    {
+                        TempData["ResultMessage"] = "<strong>Error!</strong> Failed to update location.";
+                        TempData["ResultType"] = "danger";
+                    }
+                }
+                else
+                {
+                    // Create new location
+                    result = _surveyRepository.AddSurveyLocation(model);
+                    
+                    if (result)
+                    {
+                        TempData["ResultMessage"] = "<strong>Success!</strong> Location added successfully.";
+                        TempData["ResultType"] = "success";
+                    }
+                    else
+                    {
+                        TempData["ResultMessage"] = "<strong>Error!</strong> Failed to add location.";
+                        TempData["ResultType"] = "danger";
+                    }
+                }
+
+                return RedirectToAction("SurveyLocation", new { surveyId = model.SurveyID, SurveyName = ViewBag.SelectedSurveyName });
+            }
+            catch (Exception ex)
+            {
+                TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
+                TempData["ResultType"] = "danger";
+                return RedirectToAction("SurveyLocation", new { surveyId = model.SurveyID });
+            }
+        }
+
+        //Delete Survey sub-locations
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteSurveyLocation(int locId, int surveyId)
+        {
+            try
+            {
+                bool result = _surveyRepository.DeleteSurveyLocation(locId);
+                if (result)
+                {
+                    return Json(new { success = true, message = "Location deleted successfully." });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Failed to delete location." });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+
+
         // GET: SurveyCreation/SurveyLocationView
         [HttpGet]
         public IActionResult SurveyLocationView()
@@ -187,6 +272,7 @@ namespace SurveyApp.Controllers
             var model = new SurveyLocationModel();
             return View("SurveyLocationCreate", model);
         }
+
         // POST: SurveyCreation/SurveyLocationCreate
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -203,18 +289,20 @@ namespace SurveyApp.Controllers
             return RedirectToAction("SurveyLocation");
         }
 
+
+
         // GET: SurveyCreation/SurveyLocationEdit
         [HttpGet]
         public IActionResult SurveyLocationEdit(int id)
         {
-            var model = new SurveyLocationModel
-            {
-                LocID = id,
-                LocName = "Sample Location",
-                LocLat = 12.345678M,
-                LocLog = 98.765432M,
-                Isactive = true
-            };
+            var model = new SurveyLocationModel ();
+            //{
+            //    LocID = id,
+            //    LocName = "Sample Location",
+            //    LocLat = 12.345678M,
+            //    LocLog = 98.765432M,
+            //    Isactive = true
+            //};
             return View("SurveyLocationEdit", model);
         }
         // POST: SurveyCreation/SurveyLocationEdit
@@ -276,6 +364,34 @@ namespace SurveyApp.Controllers
             TempData["ResultMessage"] = "<strong>Success!</strong> Device types saved successfully.";
             TempData["ResultType"] = "success";
             return RedirectToAction("SaveItemType");
+        }
+
+        // POST: SurveyCreation/AddSurveyLocations
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult AddSurveyLocations(Int64 surveyId, List<SurveyLocationModel> locations)
+        {
+            int createdBy = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
+            if (locations == null || locations.Count == 0)
+            {
+                TempData["ResultMessage"] = "<strong>Error!</strong> No locations provided.";
+                TempData["ResultType"] = "danger";
+                return RedirectToAction("SurveyLocation", new { surveyId });
+            }
+
+            bool result = _surveyRepository.CreateLocationsBySurveyId(surveyId, locations, createdBy);
+
+            if (result)
+            {
+                TempData["ResultMessage"] = "<strong>Success!</strong> Locations added successfully.";
+                TempData["ResultType"] = "success";
+            }
+            else
+            {
+                TempData["ResultMessage"] = "<strong>Error!</strong> Failed to add locations.";
+                TempData["ResultType"] = "danger";
+            }
+            return RedirectToAction("SurveyLocation", new { surveyId });
         }
     }
 }

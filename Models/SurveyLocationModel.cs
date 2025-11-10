@@ -6,14 +6,14 @@ namespace SurveyApp.Models
     public class SurveyLocationModel
     {
         public int LocID { get; set; }
-        public int SurveyID { get; set; }
+        public Int64 SurveyID { get; set; }
 
         [Required]
         [Display(Name = "Location Name")]
         public string LocName { get; set; } = string.Empty;
 
         [Display(Name = "Latitude")]
-        public decimal? LocLat { get; set; }
+        public decimal? LocLat { get; set; } 
 
         [Display(Name = "Longitude")]
         public decimal? LocLog { get; set; }
