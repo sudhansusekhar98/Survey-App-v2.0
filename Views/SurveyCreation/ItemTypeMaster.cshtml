@@ -1,7 +1,18 @@
 ﻿@model List<SurveyApp.Models.ItemTypeMasterModel>
 @{
     ViewData["Title"] = "Device Type Master";
+    var locId = ViewBag.LocId; 
+    var surveyId = ViewBag.SelectedSurveyId;
+    var surveyName = ViewBag.SelectedSurveyName;
 }
+
+<div class="alert alert-info mb-3">
+    <strong>Location ID:</strong> @locId
+    &nbsp; | &nbsp;
+    <strong>Survey Name:</strong> @surveyName
+    &nbsp; | &nbsp;
+    <strong>Survey ID:</strong> @surveyId
+</div>
 
 <form asp-controller="SurveyCreation" asp-action="SaveItemType" method="post">
     @Html.AntiForgeryToken()

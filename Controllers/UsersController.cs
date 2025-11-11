@@ -33,7 +33,6 @@ namespace AnalyticaDocs.Controllers
             return PartialView("~/Views/Users/_UserDetailModal.cshtml", user);
         }
 
-
         public IActionResult Create()
         {
             var result = _util.CheckAuthorization(this, "101");
@@ -70,7 +69,6 @@ namespace AnalyticaDocs.Controllers
                 TempData["ResultMessage"] = "<strong>Error!</strong> Record Not Save.";
                 return View("Create", user);
             }
-
         }
 
         [HttpGet]
@@ -90,8 +88,6 @@ namespace AnalyticaDocs.Controllers
             }
             return View("Edit", user);
         }
-
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
