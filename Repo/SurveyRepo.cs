@@ -1,6 +1,7 @@
 using AnalyticaDocs.Models;
 using AnalyticaDocs.Util;
 using Humanizer;
+using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.Data.SqlClient;
 using SurveyApp.Models;
 using System.Data;
@@ -186,6 +187,7 @@ namespace SurveyApp.Repo
             using (var cmd = new SqlCommand("dbo.SpSurvey", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandTimeout = 120; // Set timeout to 120 seconds
                 cmd.Parameters.AddWithValue("@SpType", 9);
                 cmd.Parameters.AddWithValue("@SurveyID", surveyId);
                 conn.Open();
@@ -206,7 +208,7 @@ namespace SurveyApp.Repo
                 using var conn = new SqlConnection(DBConnection.ConnectionString);
                 using var cmd = new SqlCommand("dbo.SpSurvey", conn);
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@SpType", 10); // Assuming SpType 10 for getting location by LocID
+                cmd.Parameters.AddWithValue("@SpType", 10);
                 cmd.Parameters.AddWithValue("@LocID", locId);
                 
                 conn.Open();
@@ -246,25 +248,77 @@ namespace SurveyApp.Repo
             }
         }
 
+        //public bool UpdateSurveyLocation(SurveyLocationModel location)
+        //{
+        //    try
+        //    {
+        //        using var conn = new SqlConnection(DBConnection.ConnectionString);
+        //        using var cmd = new SqlCommand("dbo.SpSurvey", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.AddWithValue("@SpType", 12);
+        //        cmd.Parameters.AddWithValue("@LocID", location.LocID);
+        //        cmd.Parameters.AddWithValue("@SurveyID", location.SurveyID);
+        //        cmd.Parameters.AddWithValue("@LocName", location.LocName ?? (object)DBNull.Value);
+        //        cmd.Parameters.AddWithValue("@LocLat", location.LocLat ?? (object)DBNull.Value);
+        //        cmd.Parameters.AddWithValue("@LocLog", location.LocLog ?? (object)DBNull.Value);
+        //        cmd.Parameters.AddWithValue("@Isactive", location.Isactive ? 'Y' : 'N');
+
+        //        conn.Open();
+        //        int result = cmd.ExecuteNonQuery();
+        //        if (result >= 0)
+        //            return true;
+        //        else
+        //            return false;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw;
+        //    }
+        //}
+
+        //public bool DeleteSurveyLocation(int locId)
+        //{
+        //    try
+        //    {
+        //        using var conn = new SqlConnection(DBConnection.ConnectionString);
+        //        using var cmd = new SqlCommand("dbo.SpSurvey", conn);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+        //        cmd.Parameters.AddWithValue("@SpType", 11);
+        //        cmd.Parameters.AddWithValue("@LocID", locId);
+
+        //        conn.Open();
+        //        int rowsAffected = cmd.ExecuteNonQuery();
+        //        return rowsAffected > 0;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw;
+        //    }
+        //}
+
+
         public bool UpdateSurveyLocation(SurveyLocationModel location)
         {
             try
             {
                 using var conn = new SqlConnection(DBConnection.ConnectionString);
-                using var cmd = new SqlCommand("dbo.SpSurvey", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@SpType", 12); 
+                using var cmd = new SqlCommand("dbo.SpSurvey", conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                cmd.Parameters.AddWithValue("@SpType", 12);
                 cmd.Parameters.AddWithValue("@LocID", location.LocID);
                 cmd.Parameters.AddWithValue("@SurveyID", location.SurveyID);
                 cmd.Parameters.AddWithValue("@LocName", location.LocName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@LocLat", location.LocLat ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@LocLog", location.LocLog ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@Isactive", location.Isactive);
+                cmd.Parameters.AddWithValue("@Isactive", location.Isactive ? "Y" : "N");
+
                 conn.Open();
-                int rowsAffected = cmd.ExecuteNonQuery();
-                return rowsAffected > 0;
+                return cmd.ExecuteNonQuery() != -1; // works even if SP returns -1
             }
-            catch (Exception ex)
+            catch
             {
                 throw;
             }
@@ -275,20 +329,23 @@ namespace SurveyApp.Repo
             try
             {
                 using var conn = new SqlConnection(DBConnection.ConnectionString);
-                using var cmd = new SqlCommand("dbo.SpSurvey", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@SpType", 11); 
+                using var cmd = new SqlCommand("dbo.SpSurvey", conn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                cmd.Parameters.AddWithValue("@SpType", 11);
                 cmd.Parameters.AddWithValue("@LocID", locId);
-                
+
                 conn.Open();
-                int rowsAffected = cmd.ExecuteNonQuery();
-                return rowsAffected > 0;
+                return cmd.ExecuteNonQuery() != -1;
             }
-            catch (Exception ex)
+            catch
             {
                 throw;
             }
         }
+
 
         public bool CreateLocationsBySurveyId(Int64 surveyId, List<SurveyLocationModel> locations, int createdBy)
         {
@@ -304,10 +361,112 @@ namespace SurveyApp.Repo
                 cmd.Parameters.AddWithValue("@LocLat", location.LocLat ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@LocLog", location.LocLog ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@CreatedBy", createdBy);
+
                 cmd.ExecuteNonQuery();
             }
             return true;
         }
 
+        public List<ItemTypeMasterModel> GetItemTypeMaster(int locId)
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurvey", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 13);
+                cmd.Parameters.AddWithValue("@LocID", locId);
+
+                con.Open();
+
+                using var adapter = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                adapter.Fill(dt);
+
+                List<ItemTypeMasterModel> itemTypes = SqlDbHelper.DataTableToList<ItemTypeMasterModel>(dt);
+                return itemTypes;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public bool SaveItemTypesForLocation(Int64 surveyId, string surveyName, int locId, List<int> itemTypeIds)
+        {
+            using var conn = new SqlConnection(DBConnection.ConnectionString);
+            conn.Open();
+            foreach (var itemTypeId in itemTypeIds)
+            {
+                using var cmd = new SqlCommand("dbo.SpSurvey", conn);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 14);
+                cmd.Parameters.AddWithValue("@SurveyID", surveyId);
+                cmd.Parameters.AddWithValue("@SurveyName", surveyName);
+                cmd.Parameters.AddWithValue("@LocID", locId);
+                cmd.Parameters.AddWithValue("@ItemTypeID", itemTypeId);
+
+                cmd.ExecuteNonQuery();
+            }
+            return true;
+        }
+
+        //public bool UpdateRights(ItemTypeMasterModel model)
+        //{
+        //    using var con = new SqlConnection(DBConnection.ConnectionString);
+        //    con.Open();
+
+        //    using var transaction = con.BeginTransaction();
+        //    try
+        //    {
+        //        using var cmd = new SqlCommand("dbo.SpUserRights", con, transaction);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+
+        //        cmd.Parameters.AddWithValue("@SpType", 14);
+        //        cmd.Parameters.AddWithValue("@UserID", model.surve);
+        //        cmd.Parameters.AddWithValue("@RightsID", right.RightsID);
+               
+
+        //        int result = cmd.ExecuteNonQuery();
+        //        if (result <= 0)
+        //        {
+        //            transaction.Rollback();
+        //            return false;
+        //        }
+
+        //        foreach (var right in model.RightsList)
+        //        {
+        //            using var cmd = new SqlCommand("dbo.SpUserRights", con, transaction);
+        //            cmd.CommandType = CommandType.StoredProcedure;
+
+        //            cmd.Parameters.AddWithValue("@SpType", 1);
+        //            cmd.Parameters.AddWithValue("@UserID", model.UserID);
+        //            cmd.Parameters.AddWithValue("@RightsID", right.RightsID);
+        //            cmd.Parameters.AddWithValue("@RegionID", right.RegionID);
+        //            cmd.Parameters.AddWithValue("@IsView", right.IsView ? 'Y' : 'N');
+        //            cmd.Parameters.AddWithValue("@IsCreate", right.IsCreate ? 'Y' : 'N');
+        //            cmd.Parameters.AddWithValue("@IsUpdate", right.IsUpdate ? 'Y' : 'N');
+        //            cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
+        //            cmd.Parameters.AddWithValue("@CreateBy", model.CreateBy);
+
+        //            int result = cmd.ExecuteNonQuery();
+        //            if (result <= 0)
+        //            {
+        //                transaction.Rollback();
+        //                return false;
+        //            }
+        //        }
+
+        //        transaction.Commit();
+        //        return true;
+        //    }
+        //    catch (Exception)
+        //    {
+        //        transaction.Rollback();
+        //        return false;
+        //    }
+        //}
     }
 }
+
+

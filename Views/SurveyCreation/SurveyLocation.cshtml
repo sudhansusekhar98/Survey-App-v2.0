@@ -1,6 +1,5 @@
 ﻿@model List<SurveyApp.Models.SurveyLocationModel>
 @{
-
     ViewData["Title"] = "Survey Locations";
     var editId = Convert.ToInt32(Context.Request.Query["editId"]);
     var isEdit = editId > 0;
@@ -147,6 +146,28 @@
                                                 <button class="btn btn-sm btn-danger" title="Delete" onclick="deleteLocation(@loc.LocID)">
                                                     <i class="bi bi-trash"></i> 
                                                 </button>
+                                                @if (loc.Isactive)
+                                                {
+                                                    <a asp-controller="SurveyCreation"
+                                                       asp-action="ItemTypeMaster"
+                                                       asp-route-locId="@loc.LocID"
+                                                       class="btn btn-sm btn-info"
+                                                       title="Select Device Types">
+                                                        <i class="bi bi-cpu"></i>
+                                                        &nbsp;Device Modules
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-secondary"
+                                                            title="Location is inactive. Cannot select device types."
+                                                            onclick="showInactiveLocationError('@loc.LocName')"
+                                                            disabled>
+                                                        <i class="bi bi-cpu"></i>
+                                                        &nbsp;Device Modules
+                                                    </button>
+                                                }
                                             </td>
                                         </tr>
                                         srNo++;
@@ -171,6 +192,9 @@
 </div>
 
 <script>
+     function showInactiveLocationError(locName) {
+        alert('Location "' + locName + '" is inactive. You cannot select device types for inactive locations.');
+    }
     function cancelForm() {
         var surveyId = @surveyId;
         window.location.href = '@Url.Action("SurveyLocation", "SurveyCreation")?surveyId=' + surveyId + '&SurveyName=@surveyName';

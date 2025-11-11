@@ -255,115 +255,55 @@ namespace SurveyApp.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
-
-
-        // GET: SurveyCreation/SurveyLocationView
-        [HttpGet]
-        public IActionResult SurveyLocationView()
+        // GET: SurveyCreation/ItemTypeMaster
+        public IActionResult ItemTypeMaster(int locId, string SurveyName, Int64 surveyId)
         {
-            var model = new List<SurveyLocationModel>();
-            return View("SurveyLocation", model);
-        }
-        // GET: SurveyCreation/SurveyLocationCreate
-        [HttpGet]
-        public IActionResult SurveyLocationCreate()
-        {
-            var model = new SurveyLocationModel();
-            return View("SurveyLocationCreate", model);
-        }
-
-        // POST: SurveyCreation/SurveyLocationCreate
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult SurveyLocationCreate(SurveyLocationModel model)
-        {
-            if (!ModelState.IsValid)
+            try
             {
-                return View("SurveyLocationCreate", model);
+                var itemTypes = _surveyRepository.GetItemTypeMaster(locId) ?? new List<ItemTypeMasterModel>();
+                ViewBag.LocId = locId; // Pass locId to the view if needed
+                ViewBag.SelectedSurveyId = surveyId;
+                ViewBag.SelectedSurveyName = SurveyName;
+                return View("ItemTypeMaster", itemTypes);
             }
-
-            // Save the model
-            // ...
-
-            return RedirectToAction("SurveyLocation");
-        }
-
-
-
-        // GET: SurveyCreation/SurveyLocationEdit
-        [HttpGet]
-        public IActionResult SurveyLocationEdit(int id)
-        {
-            var model = new SurveyLocationModel ();
-            //{
-            //    LocID = id,
-            //    LocName = "Sample Location",
-            //    LocLat = 12.345678M,
-            //    LocLog = 98.765432M,
-            //    Isactive = true
-            //};
-            return View("SurveyLocationEdit", model);
-        }
-        // POST: SurveyCreation/SurveyLocationEdit
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult SurveyLocationEdit(SurveyLocationModel model)
-        {
-            if (!ModelState.IsValid)
+            catch (Exception ex)
             {
-                return View("SurveyLocationEdit", model);
+                TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
+                TempData["ResultType"] = "danger";
+                return View("ItemTypeMaster", new List<ItemTypeMasterModel>());
             }
-
-            // Update the model
-            // ...
-
-            return RedirectToAction("SurveyLocation");
-        }
-
-        // POST: SurveyCreation/SurveyLocationDelete
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult SurveyLocationDelete(int id)
-        {
-            // Delete the location by id
-            // ...
-
-            return RedirectToAction("SurveyLocation");
-        }
-
-
-    // GET: SurveyCreation/ItemTypeMaster
-    public IActionResult ItemTypeMaster()
-    {
-        // Redirect to SaveItemType for correct model type
-        return RedirectToAction("SaveItemType");
         }
 
         // GET: SurveyCreation/SaveItemType
         [HttpGet]
-        public IActionResult SaveItemType()
+        public IActionResult SaveItemType(int locId)
         {
-            // Example data for testing
-            var model = new List<ItemTypeMasterModel>
+            try
             {
-                new ItemTypeMasterModel { TypeName = "Camera", TypeDesc = "Surveillance Camera", GroupName = "Security", IsActive = 'Y' },
-                new ItemTypeMasterModel { TypeName = "Network Switch", TypeDesc = "Ethernet Switch", GroupName = "Networking", IsActive = 'Y' },
-                new ItemTypeMasterModel { TypeName = "UPS", TypeDesc = "Uninterruptible Power Supply", GroupName = "Power", IsActive = 'Y' }
-                // Add more items as needed
-            };
-            return View("ItemTypeMaster", model);   
+                var itemTypes = _surveyRepository.GetItemTypeMaster(locId) ?? new List<ItemTypeMasterModel>();
+                return View("ItemTypeMaster", itemTypes);
+            }
+            catch (Exception ex)
+            {
+                TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
+                TempData["ResultType"] = "danger";
+                return View("ItemTypeMaster", new List<ItemTypeMasterModel>());
+            }
         }
 
         // POST: SurveyCreation/SaveItemType
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SaveItemType(List<ItemTypeMasterModel> model)
+        public IActionResult SaveItemType(Int64 surveyId, string surveyName, int locId, List<int> selectedTypeIds)
         {
-            // TODO: Handle selected items
+            int userId = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
+
+            // Save selected item types for the survey and location
+            _surveyRepository.SaveItemTypesForLocation(surveyId, surveyName, locId, selectedTypeIds);
+
             TempData["ResultMessage"] = "<strong>Success!</strong> Device types saved successfully.";
             TempData["ResultType"] = "success";
-            return RedirectToAction("SaveItemType");
+            return RedirectToAction("ItemTypeMaster", new { locId, surveyId, surveyName });
         }
 
         // POST: SurveyCreation/AddSurveyLocations
