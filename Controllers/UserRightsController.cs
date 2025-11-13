@@ -39,7 +39,6 @@ namespace AnalyticaDocs.Controllers
         //    ViewBag.UserOptions = _util.GetUserOptions();
         //    ViewBag.UserRights = _repository.GetUserRights(recordId.Value);
         //    return View("UserRightsView", urights);
-
         //}
 
         public IActionResult BindRecord(int? recordId)

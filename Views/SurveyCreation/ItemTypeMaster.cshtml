@@ -1,18 +1,7 @@
-﻿@model List<SurveyApp.Models.ItemTypeMasterModel>
+﻿@model SurveyApp.Models.AssignedItemsModel
 @{
     ViewData["Title"] = "Device Type Master";
-    var locId = ViewBag.LocId; 
-    var surveyId = ViewBag.SelectedSurveyId;
-    var surveyName = ViewBag.SelectedSurveyName;
 }
-
-<div class="alert alert-info mb-3">
-    <strong>Location ID:</strong> @locId
-    &nbsp; | &nbsp;
-    <strong>Survey Name:</strong> @surveyName
-    &nbsp; | &nbsp;
-    <strong>Survey ID:</strong> @surveyId
-</div>
 
 <form asp-controller="SurveyCreation" asp-action="SaveItemType" method="post">
     @Html.AntiForgeryToken()
@@ -36,26 +25,45 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <div class="mb-3">
+                            <span class="badge bg-purple me-2">Survey ID: @Model.SurveyId</span>
+                            <span class="badge bg-secondary">Location ID: @Model.LocID</span>
+                        </div>
                         <div class="row gx-4 gy-6">
-                            @for (int i = 0; i < Model.Count; i++)
+                            <input type="hidden" asp-for="SurveyId" />
+                            <input type="hidden" asp-for="LocID" />
+
+                            @if (Model.AssignItemList != null && Model.AssignItemList.Count > 0)
                             {
-                                <div class="col-12 col-md-6 col-lg-4 mb-4">
-                                    <div class="form-custom-floating p-3 shadow-sm rounded h-100 d-flex flex-column justify-content-between">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <i class="bi bi-cpu fs-2 text-primary me-3"></i>
-                                            <span class="fw-semibold fs-5">@Model[i].TypeName</span>
+                                for (int i = 0; i < Model.AssignItemList.Count; i++)
+                                {
+                                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                                        <div class="form-custom-floating p-3 shadow-sm rounded h-100 d-flex flex-column justify-content-between">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="bi bi-cpu fs-2 text-primary me-3"></i>
+                                                <span class="fw-semibold fs-5">@Model.AssignItemList[i].TypeName</span>
+                                            </div>
+
+                                            <div class="mb-2 text-muted small">@Model.AssignItemList[i].TypeDesc</div>
+                                            <div class="mb-2">
+                                                <span class="badge bg-info">@Model.AssignItemList[i].GroupName</span>
+                                            </div>
+
+                                            <div class="form-check ps-0">
+                                                <label class="switch switch-text switch-primary switch-pill">
+                                                    <input type="checkbox" class="switch-input" asp-for="AssignItemList[i].IsAssigned" />
+                                                    <span data-on="Yes" data-off="NO" class="switch-label"></span>
+                                                    <span class="switch-handle"></span>
+                                                </label>
+                                            </div>
+                                            <input type="hidden" asp-for="AssignItemList[i].ItemTypeID" />
                                         </div>
-                                        <div class="mb-2 text-muted small">@Model[i].TypeDesc</div>
-                                        <div class="mb-2"><span class="badge bg-info">@Model[i].GroupName</span></div>
-                                        <div class="form-check">
-                                            <input type="checkbox" name="selectedTypes" value="@Model[i].TypeName" class="form-check-input" id="checkbox_@i" />
-                                            <label class="form-check-label" for="checkbox_@i">Select</label>
-                                        </div>
-                                        <input type="hidden" name="TypeDesc_@i" value="@Model[i].TypeDesc" />
-                                        <input type="hidden" name="GroupName_@i" value="@Model[i].GroupName" />
-                                        <input type="hidden" name="IsActive_@i" value="@Model[i].IsActive" />
                                     </div>
-                                </div>
+                                }
+                            }
+                            else
+                            {
+                                <div>No items found.</div>
                             }
                         </div>
                     </div>

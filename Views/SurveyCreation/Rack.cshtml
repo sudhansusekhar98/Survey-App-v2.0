@@ -1,0 +1,131 @@
+﻿@{
+    ViewData["Title"] = "Rack";
+}
+
+
+<div class="container-fluid py-4" style="background:#f7f8fa; min-height:90vh;">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mt-4">
+                <div class="container py-4">
+                    <div class="card-header bg-purple py-2">
+                        <div class="row">
+                            <div class="col-6"><h6 class="text-white fs-4 pt-1">Rack</h6></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4" style="color:#6c757d;">Document indoor and outdoor rack details, images, and remarks.</p>
+                    <div class="card p-3 mb-4 border-0 shadow-sm" style="background:#fff;">
+                        <h6 class="fw-semibold text-gray-600 mb-2">Number of Racks</h6>
+                        <div class="d-flex align-items-center gap-3">
+                            <button type="button" id="removeRack" class="btn btn-danger btn-sm rounded-circle">
+                                <i class="bi bi-dash"></i>
+                            </button>
+                            <h5 id="rackCount" class="mb-0 fw-bold">01</h5>
+                            <button type="button" id="addRack" class="btn btn-success btn-sm rounded-circle">
+                                <i class="bi bi-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="rackContainer">
+                        <!-- Dynamic rack items go here -->
+                        <div class="card p-3 mb-3 rack-item border-0 shadow-sm" id="rack_1" style="background:#fff;">
+                            <h5 class="fw-semibold mb-3">Rack - 1</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3">
+                                        <h6 class="fw-semibold">Indoor</h6>
+                                        <label class="form-label fw-light small">Images</label>
+                                        <div class="d-flex gap-2 mb-2">
+                                            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-folder2-open"></i> Browse</button>
+                                            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-camera"></i> Take</button>
+                                            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-image"></i> Gallery</button>
+                                        </div>
+                                        <label class="form-label fw-light small">Remarks</label>
+                                        <textarea class="form-control" rows="2" placeholder="e.g., Rack is securely mounted."></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3">
+                                        <h6 class="fw-semibold">Outdoor</h6>
+                                        <label class="form-label fw-light small">Images</label>
+                                        <div class="d-flex gap-2 mb-2">
+                                            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-folder2-open"></i> Browse</button>
+                                            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-camera"></i> Take</button>
+                                            <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-image"></i> Gallery</button>
+                                        </div>
+                                        <label class="form-label fw-light small">Remarks</label>
+                                        <textarea class="form-control" rows="2" placeholder="e.g., Needs weather-proofing."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary px-4">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let rackCount = 1;
+
+        document.getElementById("addRack").addEventListener("click", function () {
+            rackCount++;
+            updateRackCount();
+
+            const newRack = document.createElement("div");
+            newRack.classList.add("card", "p-3", "mb-3", "rack-item");
+            newRack.id = `rack_${rackCount}`;
+            newRack.innerHTML = `
+                <h5 class="fw-semibold mb-3">Rack - ${rackCount}</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <h6 class="fw-semibold">Indoor</h6>
+                            <label class="form-label fw-light small">Images</label>
+                            <div class="d-flex gap-2 mb-2">
+                                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-folder2-open"></i> Browse</button>
+                                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-camera"></i> Take</button>
+                                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-image"></i> Gallery</button>
+                            </div>
+                            <label class="form-label fw-light small">Remarks</label>
+                            <textarea class="form-control" rows="2" placeholder="e.g., Rack is securely mounted."></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="border rounded p-3">
+                            <h6 class="fw-semibold">Outdoor</h6>
+                            <label class="form-label fw-light small">Images</label>
+                            <div class="d-flex gap-2 mb-2">
+                                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-folder2-open"></i> Browse</button>
+                                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-camera"></i> Take</button>
+                                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-image"></i> Gallery</button>
+                            </div>
+                            <label class="form-label fw-light small">Remarks</label>
+                            <textarea class="form-control" rows="2" placeholder="e.g., Needs weather-proofing."></textarea>
+                        </div>
+                    </div>
+                </div>`;
+            document.getElementById("rackContainer").appendChild(newRack);
+        });
+
+        document.getElementById("removeRack").addEventListener("click", function () {
+            if (rackCount > 1) {
+                const lastRack = document.getElementById(`rack_${rackCount}`);
+                lastRack.remove();
+                rackCount--;
+                updateRackCount();
+            }
+        });
+
+        function updateRackCount() {
+            document.getElementById("rackCount").innerText = rackCount.toString().padStart(2, '0');
+        }
+    </script>
+}

@@ -64,6 +64,7 @@
   <ItemGroup>
     <Compile Remove="Controllers\DashboardsController.cs" />
     <Compile Remove="Controllers\FeedingReportController.cs" />
+    <Compile Remove="Controllers\PoleInfrastructureController.cs" />
     <Compile Remove="Controllers\PowerConsumptionController.cs" />
     <Compile Remove="Controllers\PowerReportController.cs" />
     <Compile Remove="Controllers\StoreDailyConsumptionController.cs" />
@@ -87,13 +88,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Remove="Views\SurveyCreation\PoleInfrastructure.cshtml" />
+    <Content Remove="Views\SurveyCreation\Camera.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Chart.js" Version="3.7.1" />
     <PackageReference Include="EPPlus" Version="8.1.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.10">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7" />
     <PackageReference Include="QuestPDF" Version="2025.7.1" />
   </ItemGroup>

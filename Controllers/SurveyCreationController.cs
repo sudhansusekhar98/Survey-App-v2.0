@@ -6,13 +6,61 @@ using System;
 
 namespace SurveyApp.Controllers
 {
-    public class SurveyCreationController : Controller
-    {
-        private readonly ISurvey _surveyRepository;
+        public class SurveyCreationController : Controller
+        {
+            // GET: SurveyCreation/CameraDevices 
+            public IActionResult CameraDevices()
+            {
+                return View();
+            }
+        // GET: SurveyCreation/Announcement
+        public IActionResult Announcement()
+            {
+                return View();
+            }
+        public IActionResult NetworkSwitch()
+        {
+            return View();
+        }
+        public IActionResult PatchPanel()
+        {
+            return View();
+        }
+        public IActionResult Transreceiver()
+        {
+            return View();
+        }
+        public IActionResult Rack()
+        {
+            return View();
+        }
 
-        public SurveyCreationController(ISurvey surveyRepository)
+        public IActionResult UPS()
+        {
+            return View();
+        }
+        public IActionResult Cable()
+        {
+            return View();
+        }
+
+        public IActionResult Traffic()
+        {
+            return View();
+        }
+
+        public IActionResult PoleInfrastructure()
+        {
+            return View();
+        }
+
+
+        private readonly ISurvey _surveyRepository;
+        private readonly ICommonUtil _util;
+        public SurveyCreationController(ISurvey surveyRepository, ICommonUtil util)
         {
             _surveyRepository = surveyRepository;
+            _util = util;
         }
 
         // GET: SurveyCreation/Index - List all surveys
@@ -179,22 +227,25 @@ namespace SurveyApp.Controllers
         // POST: SurveyCreation/SurveyLocation - Handle inline create/update form
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SurveyLocation(SurveyLocationModel model)
+        public IActionResult SurveyLocation(SurveyLocationModel model, bool Isactive = false)
         {
             try
             {
+                // Explicitly set Isactive from the parameter
+                model.Isactive = Isactive;
+                
                 // Get current user from session
                 int createdBy = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
                 model.CreateBy = createdBy;
 
                 bool result;
-                
+        
                 // Check if this is an update or create operation
                 if (model.LocID > 0)
                 {
                     // Update existing location
                     result = _surveyRepository.UpdateSurveyLocation(model);
-                    
+            
                     if (result)
                     {
                         TempData["ResultMessage"] = "<strong>Success!</strong> Location updated successfully.";
@@ -210,7 +261,7 @@ namespace SurveyApp.Controllers
                 {
                     // Create new location
                     result = _surveyRepository.AddSurveyLocation(model);
-                    
+            
                     if (result)
                     {
                         TempData["ResultMessage"] = "<strong>Success!</strong> Location added successfully.";
@@ -234,77 +285,38 @@ namespace SurveyApp.Controllers
         }
 
         //Delete Survey sub-locations
+        // Delete Survey sub-locations
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteSurveyLocation(int locId, int surveyId)
+        public IActionResult DeleteSurveyLocation(int locId, int surveyId, string surveyName = "")
         {
             try
             {
                 bool result = _surveyRepository.DeleteSurveyLocation(locId);
-                if (result)
-                {
-                    return Json(new { success = true, message = "Location deleted successfully." });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Failed to delete location." });
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
-        // GET: SurveyCreation/ItemTypeMaster
-        public IActionResult ItemTypeMaster(int locId, string SurveyName, Int64 surveyId)
-        {
-            try
-            {
-                var itemTypes = _surveyRepository.GetItemTypeMaster(locId) ?? new List<ItemTypeMasterModel>();
-                ViewBag.LocId = locId; // Pass locId to the view if needed
-                ViewBag.SelectedSurveyId = surveyId;
-                ViewBag.SelectedSurveyName = SurveyName;
-                return View("ItemTypeMaster", itemTypes);
+                TempData["ResultMessage"] = result
+                    ? "<strong>Success!</strong> Location deleted successfully."
+                    : "<strong>Error!</strong> Failed to delete location.";
+                TempData["ResultType"] = result ? "success" : "danger";
             }
             catch (Exception ex)
             {
                 TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
                 TempData["ResultType"] = "danger";
-                return View("ItemTypeMaster", new List<ItemTypeMasterModel>());
             }
+
+            // Try to retain surveyName
+            surveyName = !string.IsNullOrWhiteSpace(surveyName)
+                ? surveyName
+                : Request.Form["surveyName"].ToString()
+                ?? Request.Query["surveyName"].ToString()
+                ?? TempData["SelectedSurveyName"] as string
+                ?? "";
+
+            TempData["SelectedSurveyName"] = surveyName;
+
+            return RedirectToAction("SurveyLocation", new { surveyId, surveyName });
         }
 
-        // GET: SurveyCreation/SaveItemType
-        [HttpGet]
-        public IActionResult SaveItemType(int locId)
-        {
-            try
-            {
-                var itemTypes = _surveyRepository.GetItemTypeMaster(locId) ?? new List<ItemTypeMasterModel>();
-                return View("ItemTypeMaster", itemTypes);
-            }
-            catch (Exception ex)
-            {
-                TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
-                TempData["ResultType"] = "danger";
-                return View("ItemTypeMaster", new List<ItemTypeMasterModel>());
-            }
-        }
-
-        // POST: SurveyCreation/SaveItemType
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult SaveItemType(Int64 surveyId, string surveyName, int locId, List<int> selectedTypeIds)
-        {
-            int userId = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
-
-            // Save selected item types for the survey and location
-            _surveyRepository.SaveItemTypesForLocation(surveyId, surveyName, locId, selectedTypeIds);
-
-            TempData["ResultMessage"] = "<strong>Success!</strong> Device types saved successfully.";
-            TempData["ResultType"] = "success";
-            return RedirectToAction("ItemTypeMaster", new { locId, surveyId, surveyName });
-        }
 
         // POST: SurveyCreation/AddSurveyLocations
         [HttpPost]
@@ -332,6 +344,107 @@ namespace SurveyApp.Controllers
                 TempData["ResultType"] = "danger";
             }
             return RedirectToAction("SurveyLocation", new { surveyId });
+        }
+
+        // GET: SurveyCreation/ItemTypeMaster
+        public IActionResult ItemTypeMaster(int locId, string SurveyName, Int64 surveyId)
+        {
+            try
+            {
+                var itemTypes = _surveyRepository.GetItemTypeMaster(locId) ?? new List<ItemTypeMasterModel>();
+                var selectedItemTypes = _surveyRepository.GetSelectedItemTypesForLocation(locId) ?? new List<ItemTypeMasterModel>();
+
+                // Mark items that are already assigned
+                var selectedIds = selectedItemTypes.Select(x => x.Id).ToList();
+                foreach (var item in itemTypes)
+                {
+                    item.IsAssigned = selectedIds.Contains(item.Id);
+                }
+
+                ViewBag.LocId = locId; // Pass locId to the view if needed
+                ViewBag.SelectedSurveyId = surveyId;
+                ViewBag.SelectedSurveyName = SurveyName;
+                return View("ItemTypeMaster", itemTypes);
+            }
+            catch (Exception ex)
+            {
+                TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
+                TempData["ResultType"] = "danger";
+                return View("ItemTypeMaster", new List<ItemTypeMasterModel>());
+            }
+        }
+
+        // GET: SurveyCreation/SaveItemType
+        [HttpGet]
+        public IActionResult ItemTypeMaster(int locId, Int64 surveyId)
+        {
+
+            var formModel = new AssignedItemsModel
+            {
+                SurveyId = surveyId,
+                LocID = locId,
+
+                AssignItemList = _surveyRepository.GetItemTypebySurveyLoc(locId, surveyId) ?? new List<AssignedItemsListModel>()
+            };
+
+
+            return View("ItemTypeMaster", formModel);
+
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SaveItemType(AssignedItemsModel model)
+        {
+            var result = _util.CheckAuthorization(this, "101");
+            if (result != null) return Json("unauthorized");
+
+            if (!ModelState.IsValid)
+            {
+                return Json("invalid");
+            }
+
+            model.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("UserID"));
+            bool isSaved = _surveyRepository.UpdateAssignedItems(model);
+
+            TempData["ResultMessage"] = "Device Updated for Survey";
+            TempData["ResultType"] = "success";
+
+            var locations = _surveyRepository.GetSurveyLocationById(model.SurveyId) ?? new List<SurveyLocationModel>();
+            ViewBag.SelectedSurveyId = model.SurveyId;
+            //ViewBag.SelectedSurveyName = SurveyName;
+            return View("SurveyLocation", locations);
+            //return RedirectToAction("Index");
+        }
+
+
+
+        //GET: SurveyCreation/ViewSelectedItemTypes - View selected item types in accordion
+        public IActionResult ViewSelectedItemTypes(int locId, Int64 surveyId, string surveyName)
+        {
+            try
+            {
+                var selectedItemTypes = _surveyRepository.GetSelectedItemTypesForLocation(locId);
+                var location = _surveyRepository.GetSurveyLocationByLocId(locId);
+
+                var viewModel = new LocationItemTypeViewModel
+                {
+                    LocId = locId,
+                    SurveyId = surveyId,
+                    SurveyName = surveyName ?? string.Empty,
+                    LocationName = location?.LocName ?? "Unknown Location",
+                    SelectedItemTypes = selectedItemTypes
+                };
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
+                TempData["ResultType"] = "danger";
+                return RedirectToAction("Index");
+            }
         }
     }
 }

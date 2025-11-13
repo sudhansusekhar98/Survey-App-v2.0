@@ -1,20 +1,59 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SurveyApp.Models
 {
+    [Table("ItemMaster")]
     // simple item model (you already have ItemMasterModel; keep for reference)
     public class ItemMasterModel
     {
+        [Key]
+        [Column("ItemId")]
         public int ItemId { get; set; }
+
+        [Required]
+        [Display(Name = "Type")]
+        [Column("TypeId")]
         public int TypeId { get; set; }
+
+        [Required]
+        [MaxLength(100)]
+        [Display(Name = "Item Name")]
+        [Column("ItemName")]
         public string ItemName { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(50)]
+        [Display(Name = "Item Code")]
+        [Column("ItemCode")]
         public string ItemCode { get; set; } = string.Empty;
+
+        [MaxLength(300)]
+        [Display(Name = "Item Description")]
+        [Column("ItemDesc")]
         public string ItemDesc { get; set; } = string.Empty;
-        public char IsActive { get; set; } = 'Y';
+
+        [Display(Name = "Active")]
+        [Column("IsActive")]
+        public bool IsActive { get; set; } = true;
+
+        [Display(Name = "Created On")]
+        [Column("CreatedOn")]
         public DateTime CreatedOn { get; set; } = DateTime.Now;
+
+        [Display(Name = "Created By")]
+        [Column("CreatedBy")]
         public int CreatedBy { get; set; }
+
+        [Display(Name = "Sequence Number")]
+        [Column("SqNo")]
         public int SqNo { get; set; }
+
+        // Navigation property
+        [ForeignKey("TypeId")]
+        public virtual ItemTypeMasterModel? ItemType { get; set; }
     }
 
     // Cantilever item used inside pole instances
