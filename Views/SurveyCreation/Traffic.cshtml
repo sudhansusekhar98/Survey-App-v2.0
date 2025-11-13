@@ -1,0 +1,61 @@
+@{
+    ViewData["Title"] = "Existing Traffic Availability";
+}
+
+<div class="container-fluid py-4" style="background:#f7f8fa; min-height:90vh;">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mt-4">
+                <div class="container py-4">
+                    <div class="card-header bg-purple py-2">
+                        <div class="row">
+                            <div class="col-12"><h6 class="text-white fs-4 pt-1">Existing Traffic Availability</h6></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4" style="color:#6c757d;">Indicate if there is existing traffic availability and provide details.</p>
+                    <form>
+                        <div class="card mb-4 border-0 shadow-sm" style="background:#fafdff;">
+                            <div class="card-body">
+                                <label class="fw-semibold mb-3 fs-6">Is traffic available?</label>
+                                <div class="d-flex gap-3">
+                                    <button type="button" class="btn btn-light border px-4 py-2 fw-semibold traffic-btn" id="trafficYes">Yes</button>
+                                    <button type="button" class="btn btn-primary px-4 py-2 fw-semibold traffic-btn" id="trafficNo" style="background: linear-gradient(90deg,#7c3aed,#5f1dbe); border:none;">No</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4" style="background: linear-gradient(90deg,#7c3aed,#5f1dbe); border:none;">Submit</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var yesBtn = document.getElementById('trafficYes');
+            var noBtn = document.getElementById('trafficNo');
+            yesBtn.addEventListener('click', function () {
+                yesBtn.classList.add('btn-primary');
+                yesBtn.style.background = 'linear-gradient(90deg,#7c3aed,#5f1dbe)';
+                yesBtn.style.color = '#fff';
+                noBtn.classList.remove('btn-primary');
+                noBtn.style.background = '';
+                noBtn.style.color = '';
+            });
+            noBtn.addEventListener('click', function () {
+                noBtn.classList.add('btn-primary');
+                noBtn.style.background = 'linear-gradient(90deg,#7c3aed,#5f1dbe)';
+                noBtn.style.color = '#fff';
+                yesBtn.classList.remove('btn-primary');
+                yesBtn.style.background = '';
+                yesBtn.style.color = '';
+            });
+        });
+    </script>
+}

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SurveyApp.Models;
+using SurveyApp.Repo;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,46 +9,46 @@ namespace SurveyApp.Controllers
 {
     public class PoleInfrastructureController : Controller
     {
-        // Mock base data for Poles (TypeId = 109)
-        private static readonly List<ItemMasterModel> Poles = new List<ItemMasterModel>
-        {
-            new ItemMasterModel { ItemId = 1000034, TypeId = 109, ItemName = "Iron Pole", ItemCode = "IRON-STEEL", ItemDesc = "Iron infrastructure pole", IsActive = 'Y', CreatedOn = DateTime.Now, CreatedBy = 10001 },
-            new ItemMasterModel { ItemId = 1000035, TypeId = 109, ItemName = "Concrete Pole", ItemCode = "POLE-CONCRETE", ItemDesc = "Concrete infrastructure pole", IsActive = 'Y', CreatedOn = DateTime.Now, CreatedBy = 10001 },
-            new ItemMasterModel { ItemId = 1000036, TypeId = 109, ItemName = "Wooden Pole", ItemCode = "POLE-WOOD", ItemDesc = "Wooden infrastructure pole", IsActive = 'Y', CreatedOn = DateTime.Now, CreatedBy = 10001 },
-            new ItemMasterModel { ItemId = 1000037, TypeId = 109, ItemName = "Gantry", ItemCode = "POLE-GANTRY", ItemDesc = "Overhead gantry structure", IsActive = 'Y', CreatedOn = DateTime.Now, CreatedBy = 10001 }
-        };
-
-        // Mock Cantilever Data (TypeId = 110)
-        private static readonly List<CantileverItem> Cantilevers = new List<CantileverItem>
-        {
-            new CantileverItem { Name = "Cantilever 1m", Length = "1 Meter", Quantity = 0 },
-            new CantileverItem { Name = "Cantilever 2m", Length = "2 Meter", Quantity = 0 },
-            new CantileverItem { Name = "Cantilever 3m", Length = "3 Meter", Quantity = 0 },
-            new CantileverItem { Name = "Cantilever 4m", Length = "4 Meter", Quantity = 0 }
-        };
-
-        // In-memory data store for session-like persistence
+        private readonly IItemRepository _itemRepo;
+        private readonly IItemTypeRepository _itemTypeRepo;
         private static PoleCantileverViewModel _savedModel = new PoleCantileverViewModel();
 
-        [HttpGet]
-        public IActionResult Index()
+        public PoleInfrastructureController(IItemRepository itemRepo, IItemTypeRepository itemTypeRepo)
         {
-            // Return the saved model or create a fresh one
+            _itemRepo = itemRepo;
+            _itemTypeRepo = itemTypeRepo;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
             var viewModel = _savedModel ?? new PoleCantileverViewModel();
 
-            // Preload the pole defaults (Iron/Concrete/etc.)
-            if (!viewModel.SurveillancePoles.Any())
+            // Fetch pole items from DB (TypeId = 109)
+            var poleItems = (await _itemRepo.GetByTypeAsync(109)).ToList();
+            // Fetch cantilever items from DB (TypeId = 110)
+            var cantileverItems = (await _itemRepo.GetByTypeAsync(110)).ToList();
+
+            // Optionally, fetch type info if needed
+            var poleType = await _itemTypeRepo.GetByIdAsync(109);
+            var cantileverType = await _itemTypeRepo.GetByIdAsync(110);
+
+            // Populate viewModel with DB data
+            viewModel.Cantilevers = cantileverItems.Select(x => new CantileverItem
             {
-                viewModel.SurveillancePoles = new List<PoleInstance>();
-            }
-            if (!viewModel.ALPRPoles.Any())
+                Name = x.ItemName,
+                Length = x.ItemDesc,
+                Quantity = 0
+            }).ToList();
+
+            // Example: Add pole items to SurveillancePoles (customize as needed)
+            viewModel.SurveillancePoles = poleItems.Select(x => new PoleInstance
             {
-                viewModel.ALPRPoles = new List<PoleInstance>();
-            }
-            if (!viewModel.TrafficPoles.Any())
-            {
-                viewModel.TrafficPoles = new List<PoleInstance>();
-            }
+                ItemId = x.ItemId,
+                Name = x.ItemName,
+                Description = x.ItemDesc,
+                Cantilevers = viewModel.Cantilevers
+            }).ToList();
 
             // Initialize Gantry if null
             viewModel.Gantry ??= new Gantry { Quantity = 0 };
@@ -61,24 +62,10 @@ namespace SurveyApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Save current model in memory
                 _savedModel = model;
-
-                // Optional: add logic — e.g., update cantilever quantities automatically
-                foreach (var poleGroup in model.SurveillancePoles)
-                {
-                    foreach (var c in poleGroup.Cantilevers)
-                    {
-                        // example rule: set each cantilever quantity to pole count if blank
-                        if (c.Quantity == 0)
-                            c.Quantity = 1;
-                    }
-                }
-
                 TempData["SubmitStatus"] = "success";
                 return RedirectToAction(nameof(Index));
             }
-
             TempData["SubmitStatus"] = "error";
             return View("~/Views/SurveyCreation/PoleInfrastructure_new.cshtml", model);
         }
@@ -86,7 +73,6 @@ namespace SurveyApp.Controllers
         [HttpPost]
         public IActionResult UpdateQuantity(int poleId, int quantity)
         {
-            // optional: handle quick ajax updates if you add JS later
             return Json(new { poleId, quantity, status = "updated" });
         }
     }

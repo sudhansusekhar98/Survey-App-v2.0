@@ -1,10 +1,16 @@
 using AnalyticaDocs.Repo;
 using AnalyticaDocs.Repository;
 using SurveyApp.Repo;
+using SurveyApp.Data;
+using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add DbContext with SQL Server
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") 
+        ?? "Server=(Local);Database=VLDev;Integrated Security=True;Connect Timeout=360000;TrustServerCertificate=True"));
 
 // Add services to the container.
 builder.Services.AddDistributedMemoryCache();
@@ -23,8 +29,10 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ICommonUtil, CommonUtil>();
 builder.Services.AddScoped<IAdmin, AdminRepo>();
 builder.Services.AddScoped<ISurvey, SurveyRepo>();
-//builder.Services.AddScoped<ISurveyLocation, SurveyLocationRepo>();
 
+// Register new EF Core repositories
+builder.Services.AddScoped<IItemTypeRepository, ItemTypeRepository>();
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
 
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 ExcelPackage.License.SetNonCommercialOrganization("ABTMS");

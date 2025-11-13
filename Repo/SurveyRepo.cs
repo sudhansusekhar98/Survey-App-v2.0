@@ -28,11 +28,14 @@ namespace SurveyApp.Repo
                 cmd.Parameters.AddWithValue("@SurveyName", survey.SurveyName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ImplementationType", survey.ImplementationType ?? (object)DBNull.Value);
 
-                // Your SP expects SurveyDate as varchar(100) — keep same format or adjust SP to accept DATE.
+                // Your SP expects SurveyDate as varchar(100) ï¿½ keep same format or adjust SP to accept DATE.
                 // If your model uses DateTime? convert to string (yyyy-MM-dd) or pass as DBNull if null.
                 if (survey.SurveyDate == null)
                     cmd.Parameters.AddWithValue("@SurveyDate", DBNull.Value);
                 else
+                {
+                        
+                }
                     cmd.Parameters.AddWithValue("@SurveyDate", survey.SurveyDate);
 
                 cmd.Parameters.AddWithValue("@SurveyTeamName", survey.SurveyTeamName ?? (object)DBNull.Value);
@@ -180,15 +183,14 @@ namespace SurveyApp.Repo
             }
         }
 
-        public List<SurveyLocationModel> GetSurveyLocationById(Int64 surveyId)
+        public List<SurveyLocationModel> GetSurveyLocationById(long surveyId)
         {
             var locations = new List<SurveyLocationModel>();
             using (var conn = new SqlConnection(DBConnection.ConnectionString))
             using (var cmd = new SqlCommand("dbo.SpSurvey", conn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
-                cmd.CommandTimeout = 120; // Set timeout to 120 seconds
-                cmd.Parameters.AddWithValue("@SpType", 9);
+                cmd.Parameters.AddWithValue("@SpType", 9); // 9 = Get locations for survey
                 cmd.Parameters.AddWithValue("@SurveyID", surveyId);
                 conn.Open();
                 using (var reader = cmd.ExecuteReader())
@@ -316,7 +318,8 @@ namespace SurveyApp.Repo
                 cmd.Parameters.AddWithValue("@Isactive", location.Isactive ? "Y" : "N");
 
                 conn.Open();
-                return cmd.ExecuteNonQuery() != -1; // works even if SP returns -1
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0; // Check if at least 1 row was affected
             }
             catch
             {
@@ -338,14 +341,14 @@ namespace SurveyApp.Repo
                 cmd.Parameters.AddWithValue("@LocID", locId);
 
                 conn.Open();
-                return cmd.ExecuteNonQuery() != -1;
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0; // Check if at least 1 row was affected
             }
             catch
             {
                 throw;
             }
         }
-
 
         public bool CreateLocationsBySurveyId(Int64 surveyId, List<SurveyLocationModel> locations, int createdBy)
         {
@@ -392,80 +395,154 @@ namespace SurveyApp.Repo
             }
         }
 
-        public bool SaveItemTypesForLocation(Int64 surveyId, string surveyName, int locId, List<int> itemTypeIds)
+        public List<ItemTypeMasterModel> GetSelectedItemTypesForLocation(int locId)
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurvey", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 15); // New SpType for getting selected item types
+                cmd.Parameters.AddWithValue("@LocID", locId);
+
+                con.Open();
+
+                using var adapter = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                adapter.Fill(dt);
+
+                List<ItemTypeMasterModel> itemTypes = SqlDbHelper.DataTableToList<ItemTypeMasterModel>(dt);
+                return itemTypes;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+       
+        public bool SaveItemTypesForLocation(Int64 surveyId, string surveyName, int locId, List<int> itemTypeIds, int createdBy)
         {
             using var conn = new SqlConnection(DBConnection.ConnectionString);
             conn.Open();
-            foreach (var itemTypeId in itemTypeIds)
-            {
-                using var cmd = new SqlCommand("dbo.SpSurvey", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@SpType", 14);
-                cmd.Parameters.AddWithValue("@SurveyID", surveyId);
-                cmd.Parameters.AddWithValue("@SurveyName", surveyName);
-                cmd.Parameters.AddWithValue("@LocID", locId);
-                cmd.Parameters.AddWithValue("@ItemTypeID", itemTypeId);
 
-                cmd.ExecuteNonQuery();
+            using var tran = conn.BeginTransaction();
+            try
+            {
+                //// Reset any existing assignments for this survey/location to IsAssigned = 0
+                //// (so final state exactly matches the provided itemTypeIds).
+                //using (var resetCmd = new SqlCommand(
+                //    "UPDATE AssignedItems SET IsAssigned = 0, ModifiedOn = SYSDATETIME() WHERE SurveyId = @SurveyID AND LocID = @LocID",
+                //    conn, tran))
+                //{
+                //    resetCmd.Parameters.AddWithValue("@SurveyID", surveyId);
+                //    resetCmd.Parameters.AddWithValue("@LocID", locId);
+                //    resetCmd.Parameters.AddWithValue("@ModifiedBy", createdBy);
+                //    resetCmd.ExecuteNonQuery();
+                //}
+
+                //// If no item types selected, we're done (all were reset).
+                //if (itemTypeIds == null || itemTypeIds.Count == 0)
+                //{
+                //    tran.Commit();
+                //    return true;
+                //}
+
+                // For each selected item type, call the SP with SpType = 10 which:
+                // - updates IsAssigned if record exists
+                // - inserts a new record otherwise
+                foreach (var itemTypeId in itemTypeIds)
+                {
+                    using var cmd = new SqlCommand("dbo.SpSurvey", conn, tran);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@SpType", 10);
+                    cmd.Parameters.AddWithValue("@SurveyID", surveyId);
+                    cmd.Parameters.AddWithValue("@LocID", locId);
+                    cmd.Parameters.AddWithValue("@ItemTypeID", itemTypeId);
+                    cmd.Parameters.AddWithValue("@IsAssigned", 1);      // mark selected
+                    cmd.Parameters.AddWithValue("@CreatedBy", createdBy);
+
+                    cmd.ExecuteNonQuery();
+                }
+
+                tran.Commit();
+                return true;
             }
-            return true;
+            catch
+            {
+                try { tran.Rollback(); } catch { /* log if needed */ }
+                throw; // bubble up so caller can handle/log
+            }
         }
 
-        //public bool UpdateRights(ItemTypeMasterModel model)
-        //{
-        //    using var con = new SqlConnection(DBConnection.ConnectionString);
-        //    con.Open();
+        public List<AssignedItemsListModel> GetItemTypebySurveyLoc(int LocId, Int64 SurveyID)
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurvey", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 15);
+                cmd.Parameters.AddWithValue("@SurveyID", SurveyID);
+                cmd.Parameters.AddWithValue("@LocID", LocId);
 
-        //    using var transaction = con.BeginTransaction();
-        //    try
-        //    {
-        //        using var cmd = new SqlCommand("dbo.SpUserRights", con, transaction);
-        //        cmd.CommandType = CommandType.StoredProcedure;
+                con.Open();
 
-        //        cmd.Parameters.AddWithValue("@SpType", 14);
-        //        cmd.Parameters.AddWithValue("@UserID", model.surve);
-        //        cmd.Parameters.AddWithValue("@RightsID", right.RightsID);
-               
+                using var adapter = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                adapter.Fill(dt);
 
-        //        int result = cmd.ExecuteNonQuery();
-        //        if (result <= 0)
-        //        {
-        //            transaction.Rollback();
-        //            return false;
-        //        }
+                List<AssignedItemsListModel> itemTypes = SqlDbHelper.DataTableToList<AssignedItemsListModel>(dt);
+                return itemTypes;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
 
-        //        foreach (var right in model.RightsList)
-        //        {
-        //            using var cmd = new SqlCommand("dbo.SpUserRights", con, transaction);
-        //            cmd.CommandType = CommandType.StoredProcedure;
+        public bool UpdateAssignedItems(AssignedItemsModel model)
+        {
+            using var con = new SqlConnection(DBConnection.ConnectionString);
+            con.Open();
 
-        //            cmd.Parameters.AddWithValue("@SpType", 1);
-        //            cmd.Parameters.AddWithValue("@UserID", model.UserID);
-        //            cmd.Parameters.AddWithValue("@RightsID", right.RightsID);
-        //            cmd.Parameters.AddWithValue("@RegionID", right.RegionID);
-        //            cmd.Parameters.AddWithValue("@IsView", right.IsView ? 'Y' : 'N');
-        //            cmd.Parameters.AddWithValue("@IsCreate", right.IsCreate ? 'Y' : 'N');
-        //            cmd.Parameters.AddWithValue("@IsUpdate", right.IsUpdate ? 'Y' : 'N');
-        //            cmd.Parameters.AddWithValue("@IsActive", model.IsActive);
-        //            cmd.Parameters.AddWithValue("@CreateBy", model.CreateBy);
+            using var transaction = con.BeginTransaction();
+            try
+            {
 
-        //            int result = cmd.ExecuteNonQuery();
-        //            if (result <= 0)
-        //            {
-        //                transaction.Rollback();
-        //                return false;
-        //            }
-        //        }
 
-        //        transaction.Commit();
-        //        return true;
-        //    }
-        //    catch (Exception)
-        //    {
-        //        transaction.Rollback();
-        //        return false;
-        //    }
-        //}
+                foreach (var right in model.AssignItemList)
+                {
+                    using var cmd = new SqlCommand("dbo.SpSurvey", con, transaction);
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@SpType", 10);
+                    cmd.Parameters.AddWithValue("@SurveyID", model.SurveyId);
+                    cmd.Parameters.AddWithValue("@LocID", model.LocID);
+                    cmd.Parameters.AddWithValue("@ItemTypeID", right.ItemTypeID);
+                    cmd.Parameters.AddWithValue("@IsAssigned", right.IsAssigned ? 1 : 0);
+                    cmd.Parameters.AddWithValue("@CreatedBy", model.CreatedBy);
+
+                    int result = cmd.ExecuteNonQuery();
+                    if (result <= 0)
+                    {
+                        transaction.Rollback();
+                        return false;
+                    }
+                }
+
+                transaction.Commit();
+                return true;
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                return false;
+            }
+        }
+
+
+
     }
 }
 

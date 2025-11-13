@@ -178,3 +178,91 @@
                     });
             });
         })(jQuery);
+
+
+      
+                                document.addEventListener('click', function (e) {
+                                    const preview = document.querySelector('.pole-preview');
+                                    // Browse
+                                    if (e.target.closest('.pole-browse-btn')) {
+                                        const input = document.querySelector('.pole-upload-input');
+                                        input.click();
+                                        input.onchange = function () {
+                                            handleFiles(input.files, preview);
+                                        };
+                                    }
+                                    // Gallery
+                                    if (e.target.closest('.pole-gallery-btn')) {
+                                        const input = document.querySelector('.pole-upload-input');
+                                        input.click();
+                                        input.onchange = function () {
+                                            handleFiles(input.files, preview);
+                                        };
+                                    }
+                                    // Take Photo
+                                    if (e.target.closest('.pole-take-btn')) {
+                                        const modal = new bootstrap.Modal(document.getElementById('poleVideoModal'));
+                                        const video = document.getElementById('poleCaptureVideo');
+                                        const captureBtn = document.getElementById('poleCaptureBtn');
+                                        let stream = null;
+                                        video.srcObject = null;
+                                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                            navigator.mediaDevices.getUserMedia({ video: true }).then(function (s) {
+                                                stream = s;
+                                                video.srcObject = stream;
+                                                modal.show();
+                                                captureBtn.onclick = function () {
+                                                    let canvas = document.createElement('canvas');
+                                                    canvas.width = video.videoWidth;
+                                                    canvas.height = video.videoHeight;
+                                                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                                                    let wrapper = document.createElement('div');
+                                                    wrapper.className = 'pole-preview-wrapper position-relative d-inline-block';
+                                                    let img = document.createElement('img');
+                                                    img.src = canvas.toDataURL('image/png');
+                                                    img.className = 'pole-preview-img';
+                                                    wrapper.appendChild(img);
+                                                    let cancelBtn = document.createElement('button');
+                                                    cancelBtn.className = 'btn btn-sm btn-danger position-absolute';
+                                                    cancelBtn.innerHTML = '<i class="bi bi-x"></i>';
+                                                    cancelBtn.onclick = function () { wrapper.remove(); };
+                                                    wrapper.appendChild(cancelBtn);
+                                                    preview.appendChild(wrapper);
+                                                    modal.hide();
+                                                    if (stream) stream.getTracks().forEach(track => track.stop());
+                                                };
+                                                document.getElementById('poleVideoModal').addEventListener('hidden.bs.modal', function () {
+                                                    if (stream) stream.getTracks().forEach(track => track.stop());
+                                                }, { once: true });
+                                            }).catch(function () {
+                                                alert('Camera access denied.');
+                                            });
+                                        } else {
+                                            alert('Camera not supported.');
+                                        }
+                                    }
+                                });
+                                function handleFiles(files, preview) {
+                                    Array.from(files).forEach(file => {
+                                        if (file.type.startsWith('image/')) {
+                                            let reader = new FileReader();
+                                            reader.onload = function (e) {
+                                                let wrapper = document.createElement('div');
+                                                wrapper.className = 'pole-preview-wrapper position-relative d-inline-block';
+                                                let img = document.createElement('img');
+                                                img.src = e.target.result;
+                                                img.className = 'pole-preview-img';
+                                                wrapper.appendChild(img);
+                                                let cancelBtn = document.createElement('button');
+                                                cancelBtn.className = 'btn btn-sm btn-danger position-absolute';
+                                                cancelBtn.innerHTML = '<i class="bi bi-x"></i>';
+                                                cancelBtn.onclick = function () { wrapper.remove(); };
+                                                wrapper.appendChild(cancelBtn);
+                                                preview.appendChild(wrapper);
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }
+                                    });
+                                }
+                                
+                                    

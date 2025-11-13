@@ -108,6 +108,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/Announcement.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cQW5ub3VuY2VtZW50LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/Cable.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cQ2FibGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/CameraDevices.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cQ2FtZXJhRGV2aWNlcy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -116,8 +128,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cSXRlbVR5cGVNYXN0ZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/PoleInfrastructure_new.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cUG9sZUluZnJhc3RydWN0dXJlX25ldy5jc2h0bWw=
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/NetworkSwitch.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cTmV0d29ya1N3aXRjaC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/PatchPanel.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cUGF0Y2hQYW5lbC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/PoleInfrastructure.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cUG9sZUluZnJhc3RydWN0dXJlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/Rack.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cUmFjay5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/SurveyCreation.cshtml]
@@ -130,6 +154,22 @@ build_metadata.AdditionalFiles.CssScope =
 
 [D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/SurveyLocation.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cU3VydmV5TG9jYXRpb24uY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/Traffic.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cVHJhZmZpYy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/Transreceiver.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cVHJhbnNyZWNlaXZlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/UPS.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cVVBTLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/ViewSelectedItemTypes.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cVmlld1NlbGVjdGVkSXRlbVR5cGVzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyCreation/_SurveyDetailModal.cshtml]

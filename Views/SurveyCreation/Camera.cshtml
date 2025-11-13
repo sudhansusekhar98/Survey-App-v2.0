@@ -1,0 +1,280 @@
+﻿@model List<SurveyApp.Models.CameraDeviceModel>
+@{
+    var dummyDevices = new List<SurveyApp.Models.CameraDeviceModel> {
+        new() { Id = 1000000, ItemId = 100, ItemName = "ALPR Camera", ItemCode = "CAM-ALPR", ItemDescription = "Automatic License Plate Recognition Camera", Quantity = 1 },
+        new() { Id = 1000001, ItemId = 100, ItemName = "Bullet Camera", ItemCode = "CAM-BULLET", ItemDescription = "Bullet type surveillance camera", Quantity = 1 },
+        new() { Id = 1000002, ItemId = 100, ItemName = "Dome Camera", ItemCode = "CAM-DOME", ItemDescription = "Dome type surveillance camera", Quantity = 1 },
+        new() { Id = 1000003, ItemId = 100, ItemName = "PTZ Camera", ItemCode = "CAM-PTZ", ItemDescription = "Pan-Tilt-Zoom surveillance camera", Quantity = 1 },
+        new() { Id = 1000004, ItemId = 100, ItemName = "Thermal Camera", ItemCode = "CAM-THERMAL", ItemDescription = "Thermal imaging camera", Quantity = 1 },
+        new() { Id = 1000005, ItemId = 100, ItemName = "FRS - Facial Recognition System", ItemCode = "CAM-FRS", ItemDescription = "Facial Recognition System camera", Quantity = 1 }
+    };
+    var cameraDevices = (Model != null && Model.Count > 0) ? Model : dummyDevices;
+}
+@{
+    ViewData["Title"] = "Camera Device Selection";
+    var editId = Convert.ToInt32(Context.Request.Query["editId"]);
+    var isEdit = editId > 0;
+    var editDevice = isEdit && Model != null ? Model.FirstOrDefault(d => d.Id == editId) : null;
+    var surveyId = ViewBag.SelectedSurveyId; var surveyName = ViewBag.SelectedSurveyName;
+    var locId = ViewBag.SelectedLocId; var locName = ViewBag.SelectedLocName;
+}
+<style>
+.existing-device-row{background:#fff;border-radius:6px;padding:12px}
+.device-desc-display{background:#f8f9fa;font-size:.9rem}
+.image-preview-wrapper{width:110px;height:80px;overflow:hidden;border:1px solid #dee2e6;border-radius:4px;padding:4px;background:#fff;position:relative}
+.image-preview-img{width:100%;height:100%;object-fit:cover}
+.image-preview-wrapper .btn-danger.position-absolute{display:none;top:2px;right:2px;z-index:2}
+.image-preview-wrapper:hover .btn-danger.position-absolute{display:block}
+</style>
+
+<div class="container-fluid">
+  <div class="row"><div class="col-12">
+    <div class="card shadow mt-4">
+      <div class="card-header bg-purple py-2">
+        <div class="row">
+          <div class="col-6"><h6 class="text-white fs-4 pt-1">Camera Devices</h6></div>
+          <div class="col-6 text-end"><h6 class="text-white fs-4 pt-1">@surveyName - @locName</h6></div>
+        </div>
+      </div>
+      <div class="card-body">
+        @if (TempData["ResultMessage"] != null && !string.IsNullOrWhiteSpace(TempData["ResultMessage"]?.ToString()))
+        {
+            <div class="alert alert-@TempData["ResultType"] alert-dismissible fade show" role="alert">
+                @Html.Raw(TempData["ResultMessage"])
+                <button type="button" class="btn-close btn-sm align-top" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="mb-4 p-3 border rounded" style="background-color:#f8f9fa">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0 text-primary"><i class="bi bi-camera-video me-2"></i>Select Existing Camera Devices</h5>
+            <button type="button" class="btn btn-sm btn-success" id="addFirstDeviceBtn" aria-label="Add existing device"><i class="bi bi-plus-circle me-1"></i> Add</button>
+          </div>
+          <form method="post" id="existingDevicesForm">
+            <div id="existingDeviceSelections" class="d-grid gap-2"></div>
+            @if (cameraDevices == null || cameraDevices.Count == 0)
+            {
+                <div class="alert alert-info mt-3 mb-0"><i class="bi bi-info-circle me-2"></i>No existing camera devices available. Please add new devices below.</div>
+            }
+          </form>
+        </div>
+
+        <div id="cameraFormContainer" class="mt-4">
+          <h5 class="mb-3 text-success"><i class="bi bi-plus-circle me-2"></i>New Camera Device Installation</h5>
+          <form asp-action="SaveCameraDevices" asp-controller="SurveyCreation" method="post" enctype="multipart/form-data" id="cameraForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@(isEdit ? editDevice?.Id : 0)" />
+            <input type="hidden" name="SurveyID" value="@surveyId" />
+            <input type="hidden" name="LocID" value="@locId" />
+
+            <div class="row gx-4 gy-3 align-items-end">
+              <div class="col-md-4">
+                <div class="form-floating">
+                  <select name="ItemId" class="form-select" required id="cameraItemSelect">
+                    <option value="">-- Select Camera Item --</option>
+                    @foreach (var item in cameraDevices)
+                    {
+                        var isSelected = isEdit && editDevice?.ItemId == item.ItemId;
+                        <option value="@item.ItemId" data-code="@item.ItemCode" data-desc="@item.ItemDescription" selected="@isSelected">@item.ItemName @(!string.IsNullOrEmpty(item.ItemCode) ? $"(@item.ItemCode)" : "")</option>
+                    }
+                  </select>
+                  <label for="cameraItemSelect">Camera Item</label>
+                </div>
+              </div>
+
+              <div class="col-md-2">
+                <label class="form-label small text-muted mb-1">Qty</label>
+                <div class="input-group" style="max-width:160px;">
+                  <button type="button" class="btn btn-outline-secondary qty-decrease-btn" aria-label="Decrease quantity"><i class="bi bi-dash"></i></button>
+                  <input type="number" min="1" name="Quantity" class="form-control text-center qty-input" placeholder="Quantity" value="@(isEdit ? editDevice?.Quantity.ToString() : "1")" required />
+                  <button type="button" class="btn btn-outline-secondary qty-increase-btn" aria-label="Increase quantity"><i class="bi bi-plus"></i></button>
+                </div>
+              </div>
+
+              <div class="col-md-3 text-end">
+                <input type="file" name="LocationImages" accept="image/*" multiple class="d-none camera-upload-input" />
+                <button type="button" class="btn btn-info mb-0 me-2 camera-browse-btn"><i class="bi bi-folder2-open"></i> Browse</button>
+                <button type="button" class="btn btn-primary mb-0 me-2 camera-take-btn"><i class="bi bi-camera"></i> Capture</button>
+                <button type="button" class="btn btn-secondary mb-0 me-2 camera-gallery-btn"><i class="bi bi-image"></i> Gallery</button>
+                <button type="button" class="btn btn-secondary" id="clearImagesBtn">Clear Images</button>
+              </div>
+
+              <div class="col-12 mt-3">
+                <div class="form-floating">
+                  <textarea name="Remarks" class="form-control" placeholder="Remarks (optional)" rows="3" style="height:100px;">@(isEdit ? editDevice?.Remarks : "")</textarea>
+                  <label>Remarks</label>
+                </div>
+              </div>
+
+              <div class="col-12"><div id="imagePreview" class="d-flex flex-wrap gap-2 mt-2"></div></div>
+                <div id="cameraVideoModal" class="modal fade" tabindex="-1">
+                  <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">Capture Image</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body text-center">
+                        <video id="cameraCaptureVideo" autoplay playsinline style="max-width:100%;height:400px;border-radius:8px;"></video>
+                        <div class="mt-3 d-flex justify-content-center gap-3">
+                          <button type="button" class="btn btn-gradient-primary px-4 py-2 fw-semibold" id="cameraCaptureBtn"><i class="bi bi-camera me-2"></i> Capture</button>
+                          <button type="button" class="btn btn-outline-danger px-4 py-2 fw-semibold" data-bs-dismiss="modal"><i class="bi bi-x-circle me-2"></i> Cancel</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+
+            <div class="row mt-4"><div class="col text-end">
+              <button type="submit" class="btn btn-primary me-2"><i class="bi bi-check2-circle me-2"></i> @(isEdit ? "Update" : "Add")</button>
+              <a asp-controller="SurveyCreation" asp-action="ItemTypeMaster" asp-route-surveyId="@surveyId" asp-route-locId="@locId" class="btn btn-danger"><i class="bi bi-slash-circle me-2"></i> Cancel</a>
+            </div></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<select id="cameraDeviceOptionsTemplate" style="display:none;">
+  <option value="">-- Choose an existing camera device --</option>
+  @foreach (var cam in cameraDevices)
+  {
+    <option value="@cam.Id" data-itemname="@cam.ItemName" data-itemcode="@cam.ItemCode" data-desc="@cam.ItemDescription">@cam.ItemName @(!string.IsNullOrEmpty(cam.ItemCode) ? "(@cam.ItemCode)" : "")</option>
+  }
+</select>
+
+<script>
+var cameraDeviceOptions = document.getElementById('cameraDeviceOptionsTemplate').innerHTML;
+(function(){
+  function createExistingDeviceRow(){
+    var row=document.createElement('div');row.className='existing-device-row row gx-2 align-items-center';
+    row.innerHTML=`
+      <div class="col-md-3">
+        <select name="ExistingDeviceId[]" class="form-select existingDeviceSelect" required>${cameraDeviceOptions}</select>
+        <small class="text-muted">Select a camera device that is already installed at this location.</small>
+      </div>
+      <div class="col-md-2">
+        <div class="input-group">
+          <button type="button" class="btn btn-outline-secondary btn-sm qty-decrease-btn" aria-label="Decrease"><i class="bi bi-dash"></i></button>
+          <input type="number" name="ExistingDeviceQty[]" class="form-control text-center qty-input" min="1" value="1" required />
+          <button type="button" class="btn btn-outline-secondary btn-sm qty-increase-btn" aria-label="Increase"><i class="bi bi-plus"></i></button>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <textarea name="ExistingDeviceRemarks[]" class="form-control" placeholder="Add any notes or comments about this device (optional)" rows="2"></textarea>
+      </div>
+      <div class="col-md-3">
+        <label class="btn btn-info mb-0 me-2"><i class="bi bi-camera me-2"></i>Add or Capture Images
+          <input type="file" name="ExistingDeviceImages[]" accept="image/*" multiple capture="environment" class="d-none existingDeviceImageInput" />
+        </label>
+        <div class="existing-image-preview d-flex flex-wrap gap-2 mt-2"></div>
+      </div>
+      <div class="col-md-1 text-end">
+        <button type="button" class="btn btn-danger remove-device-btn" title="Remove"><i class="bi bi-trash"></i></button>
+      </div>
+    `;
+    return row;
+  }
+  function addDeviceRow(){ var c=document.getElementById('existingDeviceSelections'); if(c){ var r=createExistingDeviceRow(); c.appendChild(r); var s=r.querySelector('select'); if(s) s.focus(); } }
+  function updateItemDescription(sel){ var desc=document.getElementById('itemDesc'); if(sel && desc){ var o=sel.options[sel.selectedIndex]; desc.value=o? (o.getAttribute('data-desc')||'') : ''; } }
+
+  document.addEventListener('DOMContentLoaded',function(){
+    var body=document.querySelector('.card-body'); if(!body) return;
+    addDeviceRow();
+    updateItemDescription(document.getElementById('cameraItemSelect'));
+
+    body.addEventListener('click',function(e){
+      var t=e.target;
+      if(t.closest('#addFirstDeviceBtn')) addDeviceRow();
+      if(t.closest('.remove-device-btn')) { var r=t.closest('.existing-device-row'); if(r) r.remove(); }
+      if(t.closest('.qty-increase-btn')) { var i=t.closest('.input-group').querySelector('.qty-input'); if(i) i.value = parseInt(i.value||1)+1; }
+      if(t.closest('.qty-decrease-btn')) { var i=t.closest('.input-group').querySelector('.qty-input'); if(i){ var v=parseInt(i.value||1); if(v>1) i.value=v-1; } }
+      if(t.closest('#clearImagesBtn')){ var fi=document.querySelector('input[type="file"][name="LocationImages"]'); if(fi) fi.value=''; var pv=document.getElementById('imagePreview'); if(pv) pv.innerHTML=''; }
+    });
+
+    body.addEventListener('change',function(e){
+      var t=e.target;
+      if(t.closest('#cameraItemSelect')) updateItemDescription(t);
+      if(t.closest('.existingDeviceSelect')){
+        var desc = t.options[t.selectedIndex].getAttribute('data-desc')||'';
+        var row = t.closest('.existing-device-row');
+        if(row){ var di = row.querySelector('.device-desc-display'); if(di) di.value=desc; }
+      }
+    });
+  });
+
+  window.previewImages = function(input){
+    var p=document.getElementById('imagePreview'); if(!p) return; p.innerHTML='';
+    if(input.files) Array.from(input.files).forEach(function(file){ var r=new FileReader(); r.onload=function(e){
+      var w=document.createElement('div'); w.className='image-preview-wrapper position-relative d-inline-block';
+      var img=document.createElement('img'); img.src=e.target.result; img.className='image-preview-img'; w.appendChild(img);
+      var cancelBtn=document.createElement('button'); cancelBtn.className='btn btn-sm btn-danger position-absolute'; cancelBtn.style.top='2px'; cancelBtn.style.right='2px'; cancelBtn.innerHTML='<i class="bi bi-x"></i>';
+      cancelBtn.onclick=function(){w.remove();};
+      w.appendChild(cancelBtn);
+      p.appendChild(w);
+    }; r.readAsDataURL(file); });
+  };
+  document.addEventListener('click',function(e){
+    // Browse
+    if(e.target.closest('.camera-browse-btn')){
+      var btn=e.target.closest('.camera-browse-btn');
+      var input=btn.parentElement.querySelector('.camera-upload-input');
+      input.click();
+      input.onchange=function(){window.previewImages(input);};
+    }
+    // Gallery
+    if(e.target.closest('.camera-gallery-btn')){
+      var btn=e.target.closest('.camera-gallery-btn');
+      var input=btn.parentElement.querySelector('.camera-upload-input');
+      input.click();
+      input.onchange=function(){window.previewImages(input);};
+    }
+    // Capture
+    if(e.target.closest('.camera-take-btn')){
+      var modal=new bootstrap.Modal(document.getElementById('cameraVideoModal'));
+      var video=document.getElementById('cameraCaptureVideo');
+      var captureBtn=document.getElementById('cameraCaptureBtn');
+      var stream=null;
+      video.srcObject=null;
+      if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+        navigator.mediaDevices.getUserMedia({video:true}).then(function(s){
+          stream=s;
+          video.srcObject=stream;
+          modal.show();
+          captureBtn.onclick=function(){
+            var canvas=document.createElement('canvas');
+            canvas.width=video.videoWidth;
+            canvas.height=video.videoHeight;
+            canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
+            var w=document.createElement('div'); w.className='image-preview-wrapper position-relative d-inline-block';
+            var img=document.createElement('img'); img.src=canvas.toDataURL('image/png'); img.className='image-preview-img'; w.appendChild(img);
+            var cancelBtn=document.createElement('button'); cancelBtn.className='btn btn-sm btn-danger position-absolute'; cancelBtn.style.top='2px'; cancelBtn.style.right='2px'; cancelBtn.innerHTML='<i class="bi bi-x"></i>';
+            cancelBtn.onclick=function(){w.remove();};
+            w.appendChild(cancelBtn);
+            document.getElementById('imagePreview').appendChild(w);
+            modal.hide();
+            if(stream)stream.getTracks().forEach(track=>track.stop());
+          };
+          document.getElementById('cameraVideoModal').addEventListener('hidden.bs.modal',function(){if(stream)stream.getTracks().forEach(track=>track.stop());},{once:true});
+        }).catch(function(){alert('Camera access denied.');});
+      }else{alert('Camera not supported.');}
+    }
+    // Cancel image
+    if(e.target.closest('.btn-danger.position-absolute')){
+      var btn=e.target.closest('.btn-danger.position-absolute');
+      var wrapper=btn.closest('.position-relative.d-inline-block');
+      if(wrapper)wrapper.remove();
+    }
+  });
+
+  document.addEventListener('change',function(e){
+    if(e.target && e.target.classList && e.target.classList.contains('existingDeviceImageInput')){
+      var preview=e.target.closest('.existing-device-row').querySelector('.existing-image-preview'); if(!preview) return; preview.innerHTML='';
+      if(e.target.files) Array.from(e.target.files).forEach(function(file){ var r=new FileReader(); r.onload=function(ev){ var w=document.createElement('div'); w.className='image-preview-wrapper position-relative d-inline-block'; var img=document.createElement('img'); img.src=ev.target.result; img.className='image-preview-img'; w.appendChild(img); var cancelBtn=document.createElement('button'); cancelBtn.className='btn btn-sm btn-danger position-absolute'; cancelBtn.style.top='2px'; cancelBtn.style.right='2px'; cancelBtn.innerHTML='<i class="bi bi-x"></i>'; cancelBtn.onclick=function(){w.remove();}; w.appendChild(cancelBtn); preview.appendChild(w); }; r.readAsDataURL(file); });
+    }
+  });
+})();
+</script>

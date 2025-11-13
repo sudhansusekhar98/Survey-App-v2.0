@@ -17,7 +17,16 @@ namespace SurveyApp.Repo
         bool DeleteSurveyLocation(int locId);
         bool CreateLocationsBySurveyId(Int64 surveyId, List<SurveyLocationModel> locations, int createdBy);
         List<ItemTypeMasterModel> GetItemTypeMaster(int locId);
-        bool SaveItemTypesForLocation(Int64 surveyId, string surveyName, int locId, List<int> itemTypeIds);
+        //bool SaveItemTypesForLocation(Int64 surveyId, string surveyName, int locId, List<int> itemTypeIds);
+        List<ItemTypeMasterModel> GetSelectedItemTypesForLocation(int locId);
+        bool SaveItemTypesForLocation(Int64 surveyId, string surveyName, int locId, List<int> itemTypeIds, int createdBy);
+
+        List<AssignedItemsListModel> GetItemTypebySurveyLoc(int LocId, Int64 SurveyID);
+
+        bool UpdateAssignedItems(AssignedItemsModel model);
+
+
+
     }
 }
 

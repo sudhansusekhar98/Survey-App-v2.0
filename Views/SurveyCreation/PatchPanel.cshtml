@@ -1,0 +1,113 @@
+﻿@{
+    ViewData["Title"] = "Patch Panel";
+    var panels = new[] { "Copper Patch Panel", "Fiber Patch Panel LIU" };
+}
+
+<div class="container-fluid py-4" style="background:#f7f8fa; min-height:90vh;">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mt-4">
+                <div class="container py-4">
+                    <div class="card-header bg-purple py-2">
+                        <div class="row">
+                            <div class="col-6"><h6 class="text-white fs-4 pt-1">Patch Panel</h6></div>
+                            @* <div class="col-6 text-end"><h6 class="text-white fs-4 pt-1">@surveyName - @locID</h6></div> *@
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4" style="font-size:1rem; color:#6c757d;">Configure and document patch panel specifications.</p>
+                    <form>
+                        <div id="panel-list">
+                            @for (int i = 0; i < panels.Length; i++)
+                            {
+                                <div class="card mb-4 border-0" style="background:#fff;">
+                                    <div class="card-body">
+                                        <label class="fw-semibold mb-2" style="font-size:1rem;">Panel Name</label>
+                                        <input type="text" class="form-control mb-3 fw-semibold" value="@panels[i]" />
+                                        <label class="fw-semibold mb-2" style="font-size:1rem;">Quantity</label>
+                                        <div class="d-flex align-items-center mb-3">
+                                            <button type="button" class="btn btn-danger btn-md me-2 rounded-circle panel-qty-minus" data-index="@i" style="width:38px; height:38px;"><i class="bi bi-dash"></i></button>
+                                            <span class="fw-bold panel-qty-value" id="panel-qty-@i" style="font-size:1.2rem; min-width:32px; text-align:center;">00</span>
+                                            <button type="button" class="btn btn-success btn-md ms-2 rounded-circle panel-qty-plus" data-index="@i" style="width:38px; height:38px;"><i class="bi bi-plus"></i></button>
+                                        </div>
+                                        <label class="fw-semibold mb-2" style="font-size:1rem;">Remarks</label>
+                                        <textarea class="form-control mb-2" rows="2" placeholder="e.g., All ports working" style="resize:none; font-size:0.95rem;"></textarea>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="card border-0 mb-3" style="background:#fafdff;">
+                            <div class="card-body py-2">
+                                <button type="button" class="btn btn-light border px-3 py-2 fw-semibold" id="add-panel-btn" style="font-size:1rem;">
+                                    <i class="bi bi-plus-lg me-2"></i> Add New Panel
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col text-start">
+                                <button type="submit" class="btn btn-primary px-4 py-2 fw-semibold" style="font-size:1rem;">
+                                    Submit
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let qtyArr = [0, 0];
+        document.querySelectorAll('.panel-qty-plus').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var idx = parseInt(btn.getAttribute('data-index'));
+                qtyArr[idx]++;
+                document.getElementById('panel-qty-' + idx).textContent = qtyArr[idx].toString().padStart(2, '0');
+            });
+        });
+        document.querySelectorAll('.panel-qty-minus').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var idx = parseInt(btn.getAttribute('data-index'));
+                if (qtyArr[idx] > 0) qtyArr[idx]--;
+                document.getElementById('panel-qty-' + idx).textContent = qtyArr[idx].toString().padStart(2, '0');
+            });
+        });
+
+        document.getElementById('add-panel-btn').addEventListener('click', function () {
+            var idx = qtyArr.length;
+            qtyArr.push(0);
+            var container = document.getElementById('panel-list');
+            var newCard = document.createElement('div');
+            newCard.className = "card mb-4 border-0";
+            newCard.style.background = "#fff";
+            newCard.innerHTML = `
+                <div class="card-body">
+                    <label class="fw-semibold mb-2" style="font-size:1rem;">Panel Name</label>
+                    <input type="text" class="form-control mb-3 fw-semibold" placeholder="Panel Name e.g., 24 Port Patch Panel" />
+                    <label class="fw-semibold mb-2" style="font-size:1rem;">Quantity</label>
+                    <div class="d-flex align-items-center mb-3">
+                        <button type="button" class="btn btn-danger btn-md me-2 rounded-circle panel-qty-minus" data-index="${idx}" style="width:38px; height:38px;"><i class="bi bi-dash"></i></button>
+                        <span class="fw-bold panel-qty-value" id="panel-qty-${idx}" style="font-size:1.2rem; min-width:32px; text-align:center;">00</span>
+                        <button type="button" class="btn btn-success btn-md ms-2 rounded-circle panel-qty-plus" data-index="${idx}" style="width:38px; height:38px;"><i class="bi bi-plus"></i></button>
+                    </div>
+                    <label class="fw-semibold mb-2" style="font-size:1rem;">Remarks</label>
+                    <textarea class="form-control mb-2" rows="2" placeholder="e.g., All ports working" style="resize:none; font-size:0.95rem;"></textarea>
+                </div>
+            `;
+            container.appendChild(newCard);
+
+            // Attach event listeners to new buttons
+            newCard.querySelector('.panel-qty-plus').addEventListener('click', function () {
+                qtyArr[idx]++;
+                document.getElementById('panel-qty-' + idx).textContent = qtyArr[idx].toString().padStart(2, '0');
+            });
+            newCard.querySelector('.panel-qty-minus').addEventListener('click', function () {
+                if (qtyArr[idx] > 0) qtyArr[idx]--;
+                document.getElementById('panel-qty-' + idx).textContent = qtyArr[idx].toString().padStart(2, '0');
+            });
+        });
+    });
+</script>

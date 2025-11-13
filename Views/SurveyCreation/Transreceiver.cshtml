@@ -1,0 +1,121 @@
+﻿@{
+    ViewData["Title"] = "Transreceiver Module";
+}
+
+<div class="container-fluid py-4" style="background:#f7f8fa; min-height:90vh;">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="fw-bold mb-2" style="font-size:2rem;">Transreceiver Module</h2>
+            <p class="mb-4" style="font-size:1rem; color:#6c757d;">Configure and document transreceiver module specifications.</p>
+        </div>
+    </div>
+    <form>
+        <div class="card border-0 mb-4" style="background:#fff;">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="fw-semibold mb-2" style="font-size:1rem;">1G Quantity</label>
+                        <div class="d-flex align-items-center mb-3">
+                            <button type="button" class="btn btn-danger btn-md me-2 rounded-circle trans-qty-minus" data-type="1g" style="width:48px; height:48px; font-size:1.5rem;"><i class="bi bi-dash"></i></button>
+                            <span class="fw-bold trans-qty-value" id="trans-qty-1g" style="font-size:2rem; min-width:40px; text-align:center;">00</span>
+                            <button type="button" class="btn btn-success btn-md ms-2 rounded-circle trans-qty-plus" data-type="1g" style="width:48px; height:48px; font-size:1.5rem;"><i class="bi bi-plus"></i></button>
+                        </div>
+                        <label class="fw-semibold mb-2" style="font-size:1rem;">1G Remarks</label>
+                        <textarea class="form-control mb-2" rows="2" placeholder="e.g., Working fine" style="resize:none; font-size:0.95rem;" id="remarks-1g"></textarea>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="fw-semibold mb-2" style="font-size:1rem;">10G Quantity</label>
+                        <div class="d-flex align-items-center mb-3">
+                            <button type="button" class="btn btn-danger btn-md me-2 rounded-circle trans-qty-minus" data-type="10g" style="width:48px; height:48px; font-size:1.5rem;"><i class="bi bi-dash"></i></button>
+                            <span class="fw-bold trans-qty-value" id="trans-qty-10g" style="font-size:2rem; min-width:40px; text-align:center;">00</span>
+                            <button type="button" class="btn btn-success btn-md ms-2 rounded-circle trans-qty-plus" data-type="10g" style="width:48px; height:48px; font-size:1.5rem;"><i class="bi bi-plus"></i></button>
+                        </div>
+                        <label class="fw-semibold mb-2" style="font-size:1rem;">10G Remarks</label>
+                        <textarea class="form-control mb-2" rows="2" placeholder="e.g., Not working" style="resize:none; font-size:0.95rem;" id="remarks-10g"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card border-0 mb-4" style="background:#fafdff;">
+            <div class="card-body py-3">
+                <button type="button" class="btn btn-light border px-4 py-2 fw-semibold" id="add-port-btn" style="font-size:1rem;">
+                    <i class="bi bi-plus-lg me-2"></i> Add Port
+                </button>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col text-end">
+                <button type="submit" class="btn btn-primary px-5 py-2 fw-semibold" style="font-size:1.1rem;">
+                    Submit
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        let qty1g = 0, qty10g = 0;
+        document.querySelectorAll('.trans-qty-plus').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var type = btn.getAttribute('data-type');
+                if (type === '1g') {
+                    qty1g++;
+                    document.getElementById('trans-qty-1g').textContent = qty1g.toString().padStart(2, '0');
+                } else {
+                    qty10g++;
+                    document.getElementById('trans-qty-10g').textContent = qty10g.toString().padStart(2, '0');
+                }
+            });
+        });
+        document.querySelectorAll('.trans-qty-minus').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var type = btn.getAttribute('data-type');
+                if (type === '1g') {
+                    if (qty1g > 0) qty1g--;
+                    document.getElementById('trans-qty-1g').textContent = qty1g.toString().padStart(2, '0');
+                } else {
+                    if (qty10g > 0) qty10g--;
+                    document.getElementById('trans-qty-10g').textContent = qty10g.toString().padStart(2, '0');
+                }
+            });
+        });
+
+        document.getElementById('add-port-btn').addEventListener('click', function () {
+            var container = document.querySelector('form');
+            var newCard = document.createElement('div');
+            newCard.className = "card border-0 mb-4";
+            newCard.style.background = "#fff";
+            newCard.innerHTML = `
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-semibold mb-2" style="font-size:1rem;">Port Name</label>
+                            <input type="text" class="form-control mb-3 fw-semibold" placeholder="Port Name e.g., 1G SFP" />
+                            <label class="fw-semibold mb-2" style="font-size:1rem;">Quantity</label>
+                            <div class="d-flex align-items-center mb-3">
+                                <button type="button" class="btn btn-danger btn-md me-2 rounded-circle port-qty-minus" style="width:48px; height:48px; font-size:1.5rem;"><i class="bi bi-dash"></i></button>
+                                <span class="fw-bold port-qty-value" style="font-size:2rem; min-width:40px; text-align:center;">00</span>
+                                <button type="button" class="btn btn-success btn-md ms-2 rounded-circle port-qty-plus" style="width:48px; height:48px; font-size:1.5rem;"><i class="bi bi-plus"></i></button>
+                            </div>
+                            <label class="fw-semibold mb-2" style="font-size:1rem;">Remarks</label>
+                            <textarea class="form-control mb-2" rows="2" placeholder="e.g., Working fine" style="resize:none; font-size:0.95rem;"></textarea>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.insertBefore(newCard, container.querySelector('.row.mt-4'));
+
+            // Quantity logic for new port
+            let qty = 0;
+            newCard.querySelector('.port-qty-plus').addEventListener('click', function () {
+                qty++;
+                newCard.querySelector('.port-qty-value').textContent = qty.toString().padStart(2, '0');
+            });
+            newCard.querySelector('.port-qty-minus').addEventListener('click', function () {
+                if (qty > 0) qty--;
+                newCard.querySelector('.port-qty-value').textContent = qty.toString().padStart(2, '0');
+            });
+        });
+    });
+</script>
