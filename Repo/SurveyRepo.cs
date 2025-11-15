@@ -7,8 +7,9 @@ using SurveyApp.Models;
 using System.Data;
 
 namespace SurveyApp.Repo
+       
 {
-    public class SurveyRepo : ISurvey
+        public class SurveyRepo : ISurvey
     {
         public bool AddSurvey(SurveyModel survey)
         {
@@ -505,12 +506,9 @@ namespace SurveyApp.Repo
         {
             using var con = new SqlConnection(DBConnection.ConnectionString);
             con.Open();
-
             using var transaction = con.BeginTransaction();
             try
             {
-
-
                 foreach (var right in model.AssignItemList)
                 {
                     using var cmd = new SqlCommand("dbo.SpSurvey", con, transaction);
@@ -530,7 +528,6 @@ namespace SurveyApp.Repo
                         return false;
                     }
                 }
-
                 transaction.Commit();
                 return true;
             }
@@ -541,6 +538,90 @@ namespace SurveyApp.Repo
             }
         }
 
+        public List<SurveyAssignmentModel> GetSurveyAssignments(Int64 SurveyID)
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurvey", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 16);
+                cmd.Parameters.AddWithValue("@SurveyID", SurveyID);
+
+                con.Open();
+
+                using var adapter = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                adapter.Fill(dt);
+
+                List<SurveyAssignmentModel> SurveyAssignmentList = SqlDbHelper.DataTableToList<SurveyAssignmentModel>(dt);
+                return SurveyAssignmentList;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public  bool AddSurveyAssignment(SurveyAssignmentModel assignment)
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurvey", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 17);
+                cmd.Parameters.AddWithValue("@SurveyID", assignment.SurveyID);
+                cmd.Parameters.AddWithValue("@EmpID", assignment.EmpID);
+                cmd.Parameters.AddWithValue("@DueDate", assignment.DueDate);
+                cmd.Parameters.AddWithValue("@CreatedBy", assignment.CreateBy);
+                con.Open();
+                int rowsAffected = cmd.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        //public bool AssignSurvey(SurveyAssignmentModel model)
+        //{
+        //    try
+        //    {
+        //        using var con = new SqlConnection(DBConnection.ConnectionString);
+        //        using var cmd = new SqlCommand("dbo.SpSurvey", con);
+        //        cmd.CommandType = CommandType.StoredProcedure;
+
+        //        // SpType = 1 -> Insert Survey 
+        //        cmd.Parameters.AddWithValue("@SpType", 17);
+
+
+        //        cmd.Parameters.AddWithValue("@SurveyID", survey.SurveyId == 0 ? (object)DBNull.Value : survey.SurveyId);
+
+
+
+        //        if (survey.CreatedBy == 0)
+        //            cmd.Parameters.AddWithValue("@CreatedBy", DBNull.Value);
+        //        else
+        //            cmd.Parameters.AddWithValue("@CreatedBy", survey.CreatedBy);
+
+        //        con.Open();
+
+        //        int rowsAffected = cmd.ExecuteNonQuery();
+
+        //        // NOTE: If you later modify the stored procedure to output the generated SurveyId
+        //        // you can add an output parameter and read it here:
+        //        // var newId = cmd.Parameters["@NewSurveyId"].Value;
+
+        //        return rowsAffected > 0;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        // TODO: log ex.ToString()
+        //        throw;
+        //    }
+        //}
 
 
     }

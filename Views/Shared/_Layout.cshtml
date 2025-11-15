@@ -49,7 +49,7 @@
                                data-bs-toggle="dropdown" aria-expanded="false">  Analytics </a>
                             <ul class="dropdown-menu" aria-labelledby="navbardropAnalytics">
                                 <li><h6 class="dropdown-header">Dashboards</h6></li>
-                                <li><a class="dropdown-item" asp-controller="Dashboards" asp-action="Index"><i class="bi bi-grid-fill me-2"></i>Central Console</a></li>
+                                <li><a class="dropdown-item" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-fill me-2"></i>Central Console</a></li>
                                 <li class="dropdown-submenu position-relative">
                                     <a class="dropdown-item dropdown-toggle" href="javascript:void(0)" id="navbarRegionDropdown">
                                         <i class="bi bi-globe-americas me-2"></i>Regional Dashboard
@@ -95,6 +95,8 @@
                                                                 <li><a class="dropdown-item" asp-controller="SurveyCreation" asp-action="UPS"><i class="bi bi-battery-charging me-2"></i>UPS</a></li>
                                                                 <li><a class="dropdown-item" asp-controller="SurveyCreation" asp-action="Cable"><i class="bi bi-currency-exchange me-2"></i>Cable</a></li>
                                                                 <li><a class="dropdown-item" asp-controller="SurveyCreation" asp-action="Traffic"><i class="bi bi-traffic-cone me-2"></i>Traffic</a></li>
+                                                                <li><a class="dropdown-item" asp-controller="SurveyCreation" asp-action="SurveyAssignment"><i class="bi bi-traffic-cone me-2"></i>Survey Assignment</a></li>
+
                             </ul>
                         </li>
 

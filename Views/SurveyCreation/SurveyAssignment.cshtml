@@ -1,0 +1,78 @@
+﻿@model List<SurveyApp.Models.SurveyAssignmentModel>
+@{
+    ViewData["Title"] = "Survey Assignment List";
+}
+<span>@Model.FirstOrDefault()?.SurveyID</span>
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card shadow mt-4">
+                <div class="card-header bg-purple py-3">
+                    <div class="row align-items-center">
+                        <div class="col-6">
+                            <h5 class="text-white mb-0">
+                                <i class="bi bi-list-check me-2"></i>Survey Assignments
+                            </h5>
+
+                            <h5 class="text-white mb-0">
+                                <i class="me-2"></i>Survey ID: @ViewBag.SurveyID
+                            </h5>
+                            <h5 class="text-white mb-0">
+                                <i class="me-2"></i>Survey Name: @ViewBag.SurveyName
+                            </h5>
+                        </div>
+                        <div class="col-6 text-end">
+                            <a asp-controller="SurveyCreation" 
+                               asp-action="CreateSurveyAssignment" 
+                               asp-route-surveyId="@ViewBag.SurveyID"
+                               class="btn btn-outline-success text-white border-0">
+                                <i class="bi bi-plus-circle me-2"></i> Add Assignment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        <table class="table table-bordered table-hover datatables-basic">
+                            <thead class="bg-purple text-white">
+                                <tr>
+                                    <th>Trans ID</th>
+                                    <th>Survey ID</th>
+                                    <th>Employee ID</th>
+                                    <th>Employee Name</th>
+                                    <th>Created By</th>
+                                   @*  <th>Created On</th> *@
+                                    <th>Due Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var assignment in Model)
+                                {
+                                    <tr>
+                                        <td>@assignment.TransID</td>
+                                        <td>@assignment.SurveyID</td>
+                                        <td>@assignment.EmpID</td>
+                                        <td>@assignment.EmpName</td>
+                                        <td>@assignment.CreateBy</td>
+                                        @* <td>@assignment.CreateOn.ToString("dd MMM yyyy")</td> *@
+                                        <td>@assignment.DueDate.ToString("dd MMM yyyy")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
+                            <h5 class="text-muted mb-3">No Survey Assignments Found</h5>
+                            <p class="text-muted mb-4">No assignments found for this survey.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

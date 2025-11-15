@@ -1,6 +1,7 @@
 ﻿using AnalyticaDocs.Models;
 using AnalyticaDocs.Util;
 using Microsoft.Data.SqlClient;
+using SurveyApp.Models;
 using System.Data;
 namespace AnalyticaDocs.Repo
 {
@@ -262,6 +263,32 @@ namespace AnalyticaDocs.Repo
             {
                 transaction.Rollback();
                 return false;
+            }
+        }
+
+        //Empolee Master
+        public List<EmpMasterModel> GetEmpMaster()
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                string query = "SELECT EmpID, EmpName, EmpCode, IsActive, CreatedOn, CreatedBy FROM EmpMaster";
+                using var cmd = new SqlCommand(query, con);
+                cmd.CommandType = CommandType.Text;
+
+                con.Open();
+
+                using var adapter = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                adapter.Fill(dt);
+
+                List<EmpMasterModel> Employees = SqlDbHelper.DataTableToList<EmpMasterModel>(dt);
+                return Employees;
+            }
+            catch (Exception ex)
+            {
+                // log ex.ToString()
+                throw;
             }
         }
 

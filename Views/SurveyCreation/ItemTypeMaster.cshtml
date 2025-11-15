@@ -3,6 +3,8 @@
     ViewData["Title"] = "Device Type Master";
 }
 
+
+
 <form asp-controller="SurveyCreation" asp-action="SaveItemType" method="post">
     @Html.AntiForgeryToken()
     <div class="container">
@@ -32,6 +34,7 @@
                         <div class="row gx-4 gy-6">
                             <input type="hidden" asp-for="SurveyId" />
                             <input type="hidden" asp-for="LocID" />
+                            @* <input type="hidden" asp-for="SurveyName" /> *@
 
                             @if (Model.AssignItemList != null && Model.AssignItemList.Count > 0)
                             {
@@ -80,5 +83,3 @@
         </div>
     </div>
 </form>
-
-

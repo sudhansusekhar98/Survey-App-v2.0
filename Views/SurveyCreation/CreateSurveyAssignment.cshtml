@@ -1,0 +1,67 @@
+﻿@model SurveyApp.Models.SurveyAssignmentModel
+@{
+    ViewData["Title"] = "Create Survey Assignment";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow mt-4">
+                <div class="card-header bg-purple py-3">
+                    <h5 class="text-white mb-0">
+                        <i class="bi bi-person-plus me-2"></i>Assign Survey to Employee
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-controller="SurveyCreation" asp-action="CreateSurveyAssignment" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <input type="hidden" asp-for="SurveyID" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Survey ID</label>
+                            <input type="text" class="form-control" value="@Model.SurveyID" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="SelectedEmpIDs" class="form-label fw-bold">Employees</label>
+                            @Html.ListBoxFor(model => model.SelectedEmpIDs, ViewBag.Employees as SelectList, new { @class = "form-control", multiple = "multiple" })
+                            <span asp-validation-for="SelectedEmpIDs" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DueDate" class="form-label fw-bold">Due Date</label>
+                            <input asp-for="DueDate" type="date" class="form-control" />
+                            <span asp-validation-for="DueDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-controller="SurveyCreation" 
+                               asp-action="SurveyAssignment" 
+                               asp-route-surveyId="@Model.SurveyID"
+                               class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Back to List
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle me-2"></i>Assign Survey
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageStyles {
+    <style>
+        .bg-purple {
+            background-color: #6f42c1 !important;
+            color: #fff !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

@@ -10,8 +10,6 @@ namespace AnalyticaDocs.Controllers
     public class UserLoginController : Controller
     {
         private readonly IAdmin _repository;
-       
-
         public UserLoginController(IAdmin repository)
         {
             _repository = repository;
@@ -23,18 +21,15 @@ namespace AnalyticaDocs.Controllers
             return View("LoginBasic",new UserLoginModel());
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Index([Bind("LoginId,LoginPassword")] UserLoginModel loginData)
         {
-
             if (loginData.LoginId.IsNullOrEmpty() || loginData.LoginPassword.IsNullOrEmpty())
             {
                 // Return view with validation errors to show red borders
                 return View("LoginBasic", loginData);
             }
-
 
             var user = _repository.GetLoginUser(loginData);
             if (user != null)

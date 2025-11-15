@@ -25,8 +25,8 @@ namespace SurveyApp.Repo
 
         bool UpdateAssignedItems(AssignedItemsModel model);
 
-
-
+        List<SurveyAssignmentModel>? GetSurveyAssignments(Int64 surveyId);
+        bool AddSurveyAssignment(SurveyAssignmentModel assignment);
     }
 }
 
