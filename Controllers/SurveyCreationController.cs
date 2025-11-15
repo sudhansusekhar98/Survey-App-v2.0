@@ -1,18 +1,32 @@
-﻿using AnalyticaDocs.Repository;
+﻿using AnalyticaDocs.Repo;
+using AnalyticaDocs.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using SurveyApp.Models;
 using SurveyApp.Repo;
 using System;
 
 namespace SurveyApp.Controllers
 {
-        public class SurveyCreationController : Controller
+    public class SurveyCreationController : Controller
+    {
+        private readonly ISurvey _surveyRepository;
+        private readonly ICommonUtil _util;
+        private readonly IAdmin _adminRepository; 
+
+        public SurveyCreationController(ISurvey surveyRepository, ICommonUtil util, IAdmin adminRepository) // <-- Add IAdmin parameter
         {
+            _surveyRepository = surveyRepository;
+            _util = util;
+            _adminRepository = adminRepository; 
+        }
+
             // GET: SurveyCreation/CameraDevices 
             public IActionResult CameraDevices()
             {
                 return View();
             }
+            
         // GET: SurveyCreation/Announcement
         public IActionResult Announcement()
             {
@@ -54,14 +68,6 @@ namespace SurveyApp.Controllers
             return View();
         }
 
-
-        private readonly ISurvey _surveyRepository;
-        private readonly ICommonUtil _util;
-        public SurveyCreationController(ISurvey surveyRepository, ICommonUtil util)
-        {
-            _surveyRepository = surveyRepository;
-            _util = util;
-        }
 
         // GET: SurveyCreation/Index - List all surveys
         public IActionResult Index()
@@ -147,7 +153,6 @@ namespace SurveyApp.Controllers
 
         }
 
-
         // POST: SurveyCreation/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -212,7 +217,90 @@ namespace SurveyApp.Controllers
             }
         }
 
+        //GET: SurveyCreation/SurveyAssignment
+        public IActionResult SurveyAssignment(Int64 surveyId)
+        {
+            var assignments = _surveyRepository.GetSurveyAssignments(surveyId) ?? new List<SurveyAssignmentModel>();
+            var survey = _surveyRepository.GetSurveyById(surveyId); 
+            ViewBag.SurveyName = survey?.SurveyName;
+            
+            if (assignments == null || assignments.Count == 0)
+            {
+                TempData["ResultMessage"] = $"<strong>Info!</strong> No assignments found for this survey {surveyId}.";
+                TempData["ResultType"] = "danger";
+            }
+            
+            ViewBag.SurveyID = surveyId;
+            return View("SurveyAssignment", assignments);
+        }
 
+        // GET: SurveyCreation/CreateSurveyAssignment
+        public IActionResult CreateSurveyAssignment(Int64 surveyId)
+        {
+            var model = new SurveyAssignmentModel { SurveyID = surveyId };
+            ViewBag.SurveyID = surveyId;
+            
+            // TODO: Populate employee dropdown
+            ViewBag.Employees = new SelectList(_adminRepository.GetEmpMaster(), "EmpID", "EmpName");            
+            return View(model);        
+        }
+
+        //POST: SurveyCreation/SurveyAssignment/Create
+                [HttpPost]
+                [ValidateAntiForgeryToken]
+                public IActionResult CreateSurveyAssignment(SurveyAssignmentModel model)
+                {
+                    try
+                    {
+                        if (!ModelState.IsValid)
+                        {
+                            ViewBag.Employees = new SelectList(_adminRepository.GetEmpMaster(), "EmpID", "EmpName");
+                            foreach (var key in ModelState.Keys)
+                            {
+                                var errors = ModelState[key].Errors;
+                                foreach (var error in errors)
+                                {
+                                    Console.WriteLine($"{key}: {error.ErrorMessage}");
+                                }
+                            }
+                            TempData["ResultMessage"] = "<strong>Validation Error!</strong> Please check all required fields.";
+                            TempData["ResultType"] = "warning";
+                            return View("CreateSurveyAssignment", model);
+                        }
+                        int createdBy = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "101");
+                        if (model.SelectedEmpIDs != null && model.SelectedEmpIDs.Count > 0)
+                        {
+                            foreach (var empId in model.SelectedEmpIDs)
+                            {
+                                var assignment = new SurveyAssignmentModel
+                                {
+                                    SurveyID = model.SurveyID,
+                                    EmpID = empId,
+                                    DueDate = model.DueDate,
+                                    CreateBy = createdBy,
+                                };
+                                _surveyRepository.AddSurveyAssignment(assignment);
+                            }
+                            TempData["ResultMessage"] = "<strong>Success!</strong> Assignments created successfully.";
+                            TempData["ResultType"] = "success";
+                            return RedirectToAction("SurveyAssignment", new { surveyId = model.SurveyID });
+                        }
+                        else
+                        {
+                            ViewBag.Employees = new SelectList(_adminRepository.GetEmpMaster(), "EmpID", "EmpName");
+                            TempData["ResultMessage"] = "<strong>Error!</strong> No employees selected.";
+                            TempData["ResultType"] = "danger";
+                            return View("CreateSurveyAssignment", model); // <-- Fix here
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ViewBag.Employees = new SelectList(_adminRepository.GetEmpMaster(), "EmpID", "EmpName");
+                        TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
+                        TempData["ResultType"] = "danger";
+                        return View("CreateSurveyAssignment", model); // <-- Fix here
+                    }
+        }
 
         // GET: SurveyCreation/SurveyLocation
         public IActionResult SurveyLocation(Int64 surveyId, string SurveyName, int? editId)
@@ -284,7 +372,6 @@ namespace SurveyApp.Controllers
             }
         }
 
-        //Delete Survey sub-locations
         // Delete Survey sub-locations
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -418,9 +505,7 @@ namespace SurveyApp.Controllers
             //return RedirectToAction("Index");
         }
 
-
-
-        //GET: SurveyCreation/ViewSelectedItemTypes - View selected item types in accordion
+        //GET: SurveyCreation/ViewSelectedItemTypes 
         public IActionResult ViewSelectedItemTypes(int locId, Int64 surveyId, string surveyName)
         {
             try
@@ -428,15 +513,23 @@ namespace SurveyApp.Controllers
                 var selectedItemTypes = _surveyRepository.GetSelectedItemTypesForLocation(locId);
                 var location = _surveyRepository.GetSurveyLocationByLocId(locId);
 
-                var viewModel = new LocationItemTypeViewModel
+                var viewModel = new AssignedItemsModel
                 {
-                    LocId = locId,
+                    LocID = locId,
                     SurveyId = surveyId,
                     SurveyName = surveyName ?? string.Empty,
-                    LocationName = location?.LocName ?? "Unknown Location",
-                    SelectedItemTypes = selectedItemTypes
+                    AssignItemList = selectedItemTypes.Select
+                    (
+                        item => new AssignedItemsListModel
+                        {
+                            ItemTypeID = item.Id,
+                            TypeName = item.TypeName,
+                            TypeDesc = item.TypeDesc,
+                            GroupName = item.GroupName,
+                            IsAssigned = true,
+                        }
+                    ).ToList()
                 };
-
                 return View(viewModel);
             }
             catch (Exception ex)
@@ -446,5 +539,9 @@ namespace SurveyApp.Controllers
                 return RedirectToAction("Index");
             }
         }
+
+
+
+
     }
 }

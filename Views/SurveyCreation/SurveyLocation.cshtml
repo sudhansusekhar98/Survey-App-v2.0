@@ -102,100 +102,134 @@
                         </form>
                     </div>
 
-                    <!-- View Table -->
-                    <div class="table-responsive text-nowrap mt-4">
-                        <table class="table table-hover table-bordered">
-                            <thead>
-                                <tr class="text-nowrap fw-semibold table-header">
-                                    <th class="px-2 py-3">Sl No.</th>
-                                    <th class="px-2 py-3">Location ID</th>
-                                    <th class="px-2 py-3">Survey ID</th>
-                                    <th class="px-2 py-3">Location Name</th>
-                                    <th class="px-2 py-3">Latitude</th>
-                                    <th class="px-2 py-3">Longitude</th>
-                                    <th class="px-2 py-3">Created On</th>
-                                    <th class="px-2 py-3">Created By</th>
-                                    <th class="px-2 py-3">Active</th>
-                                    <th class="px-2 py-3">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (Model != null && Model.Count > 0)
-                                {
-                                    int srNo = 1;
-                                    foreach (var loc in Model)
-                                    {
-                                        <tr>
-                                            <td class="px-2 py-2">@srNo</td>
-                                            <td class="px-2 py-2">@loc.LocID</td>
-                                            <td class="px-2 py-2">@loc.SurveyID</td>
-                                            <td class="px-2 py-2">@loc.LocName</td>
-                                            <td class="px-2 py-2">@loc.LocLat</td>
-                                            <td class="px-2 py-2">@loc.LocLog</td>
-                                            <td class="px-2 py-2">@loc.CreateOn?.ToString("dd-MMM-yyyy")</td>
-                                            <td class="px-2 py-2">@loc.CreateBy</td>
-                                            <td class="px-2 py-2">
-                                                <span class="badge @(loc.Isactive ? "bg-success" : "bg-secondary")">
-                                                    @(loc.Isactive ? "Active" : "Inactive")
-                                                </span>
-                                            </td>
-                                            <td class="px-2 py-2">
-                                                <a asp-controller="SurveyCreation" asp-action="SurveyLocation" asp-route-editId="@loc.LocID" asp-route-surveyId="@surveyId" asp-route-surveyName="@surveyName" class="btn btn-sm btn-primary" title="Edit">
-                                                    <i class="bi bi-pencil-square"></i>
+                    <!-- Locations Cards -->
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        <div class="row g-3 mt-4">
+                            @foreach (var loc in Model)
+                            {
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="card h-100 shadow-sm border-0 hover-lift">
+                                        <div class="card-header card-h bg-light border-0 d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-purple">ID: @loc.LocID</span>
+                                            <span class="badge @(loc.Isactive ? "bg-success" : "bg-secondary")">
+                                                @(loc.Isactive ? "Active" : "Inactive")
+                                            </span>
+                                        </div>
+                                        <div class="card-body">
+                                            <h5 class="card-title text-dark fw-semibold mb-3">
+                                                <i class="bi bi-geo-alt-fill text-primary me-2"></i>@loc.LocName
+                                            </h5>
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="bi bi-hash me-1"></i><strong>Survey ID:</strong>
+                                                </small>
+                                                <span class="text-dark">@loc.SurveyID</span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="bi bi-compass me-1"></i><strong>Coordinates:</strong>
+                                                </small>
+                                                <span class="text-dark">@loc.LocLat, @loc.LocLog</span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="bi bi-calendar-event me-1"></i><strong>Created:</strong>
+                                                </small>
+                                                <span class="text-dark">@loc.CreateOn?.ToString("dd-MMM-yyyy")</span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="bi bi-person me-1"></i><strong>Created By:</strong>
+                                                </small>
+                                                <span class="text-dark">@loc.CreateBy</span>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-white border-0 d-flex gap-2 justify-content-center pb-3 flex-wrap">
+                                            <a asp-controller="SurveyCreation" 
+                                               asp-action="SurveyLocation" 
+                                               asp-route-editId="@loc.LocID" 
+                                               asp-route-surveyId="@surveyId" 
+                                               asp-route-surveyName="@surveyName" 
+                                               class="btn btn-sm btn-primary" 
+                                               title="Edit Location">
+                                                <i class="bi bi-pencil-square me-1"></i>Edit
+                                            </a>
+                                            <form asp-controller="SurveyCreation" 
+                                                  asp-action="DeleteSurveyLocation" 
+                                                  method="post" 
+                                                  style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="locId" value="@loc.LocID" />
+                                                <input type="hidden" name="surveyId" value="@surveyId" />
+                                                <button type="submit" 
+                                                        class="btn btn-sm btn-danger" 
+                                                        title="Delete Location" 
+                                                        onclick="return confirm('Are you sure you want to delete this location?');">
+                                                    <i class="bi bi-trash me-1"></i>Delete
+                                                </button>
+                                            </form>
+                                            @if (loc.Isactive)
+                                            {
+                                                <a asp-controller="SurveyCreation"
+                                                   asp-action="ItemTypeMaster"
+                                                   asp-route-locId="@loc.LocID"
+                                                   asp-route-surveyId="@surveyId"
+                                                   class="btn btn-sm btn-info"
+                                                   title="Select Device Types">
+                                                    <i class="bi bi-cpu me-1"></i>Devices
                                                 </a>
-                                                <form asp-controller="SurveyCreation" asp-action="DeleteSurveyLocation" method="post" style="display:inline;">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="locId" value="@loc.LocID" />
-                                                    <input type="hidden" name="surveyId" value="@surveyId" />
-                                                    <button type="submit" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure you want to delete this location?');">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </form>
-                                                @if (loc.Isactive)
-                                                {
-                                                    <a asp-controller="SurveyCreation"
-                                                       asp-action="ItemTypeMaster"
-                                                       asp-route-locId="@loc.LocID"
-                                                       asp-route-surveyId="@surveyId"
-                                                       class="btn btn-sm btn-info"
-                                                       title="Select Device Types">
-                                                        <i class="bi bi-cpu"></i>
-                                                        &nbsp;Device Modules
-                                                    </a>
-                                                }
-                                                else
-                                                {
-                                                    <button type="button"
-                                                            class="btn btn-sm btn-secondary"
-                                                            title="Location is inactive. Cannot select device types."
-                                                            onclick="showInactiveLocationError('@loc.LocName')"
-                                                            disabled>
-                                                        <i class="bi bi-cpu"></i>
-                                                        &nbsp;Device Modules
-                                                    </button>
-                                                }
-                                            </td>
-                                        </tr>
-                                        srNo++;
-                                    }
-                                }
-                                else
-                                {
-                                    <tr>
-                                        <td colspan="10" class="text-center py-4">
-                                            <i class="bi bi-inbox fs-1 text-muted"></i>
-                                            <p class="text-muted">No locations found. Click "Add New Location" to create one.</p>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                                            }
+                                            else
+                                            {
+                                                <button type="button"
+                                                        class="btn btn-sm btn-secondary"
+                                                        title="Location is inactive"
+                                                        disabled>
+                                                    <i class="bi bi-cpu me-1"></i>Devices
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5 mt-4">
+                            <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                            <p class="text-muted fs-5">No locations found. Create a location using the form above.</p>
+                        </div>
+                    }
                 </div>      
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .hover-lift {
+        transition: all 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    .card-title {
+        min-height: 48px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .card-h {
+        --bs-bg-opacity: 1;
+        background-color: rgb(159 139 233 / 78%) !important;
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+</style>
 
 <script>
     function fetchLocation() {

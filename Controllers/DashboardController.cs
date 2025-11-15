@@ -2,7 +2,7 @@
 
 namespace SurveyApp.Controllers
 {
-    public class SurveyAssignmentController : Controller
+    public class DashboardController : Controller
     {
         public IActionResult Index()
         {

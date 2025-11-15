@@ -40,8 +40,6 @@ namespace AnalyticaDocs.Controllers
             return View("Create", new UserModel()); 
         }
 
-
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(UserModel user)

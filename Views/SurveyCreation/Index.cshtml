@@ -31,86 +31,94 @@
                         </div>
                     }
 
-                    <div class="table-responsive text-nowrap mt-4">
-                        <table class="datatables-basic table table-hover table-bordered ">
-                            <thead>
-                                <tr class="text-nowrap fw-semibold table-header">
-                                    <th class="px-2 py-3">#</th>
-                                    <th class="px-2 py-3">Survey ID</th>
-                                    <th class="px-2 py-3">Survey Name</th>
-                                    <th class="px-2 py-3">Implementation Type</th>
-                                    <th class="px-2 py-3">Survey Date</th>
-                                    <th class="px-2 py-3">Team Name</th>
-                                    <th class="px-2 py-3">Location</th>
-                                    <th class="px-2 py-3">Status</th>
-                                    <th class="px-2 py-3" style="width:100px">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="table-border-bottom-0">
-                                @if (Model != null && Model.Count > 0)
-                                {
-                                    int srNo = 1;
-                                    @foreach (var survey in Model)
-                                    {
-                                        <tr class="small text-nowrap">
-                                            <td class="px-2 py-1">@srNo</td>
-                                            <td class="px-2 py-1">@survey.SurveyId</td>
-                                            <td class="px-2 py-1">@survey.SurveyName</td>
-                                            <td class="px-2 py-1">@survey.ImplementationType</td>
-                                            <td class="px-2 py-1">@(survey.SurveyDate?.ToString("dd-MMM-yyyy") ?? "-")</td>
-                                            <td class="px-2 py-1">@survey.SurveyTeamName</td>
-                                            <td class="px-2 py-1">@survey.LocationSiteName, @survey.CityDistrict</td>
-                                            <td class="px-2 py-1">
-                                                <span class="badge bg-@(survey.SurveyStatus == "Pending" ? "secondary" : 
-                                                                        survey.SurveyStatus == "In Progress" ? "warning" : 
-                                                                        survey.SurveyStatus == "Completed" ? "success" :
-                                                                        survey.SurveyStatus == "Created" ? "primary" : "danger")">
-                                                    @survey.SurveyStatus
-                                                </span>
-                                            </td>
-                                            <td class="px-2 py-1">
-                                                <!-- Existing buttons -->
-                                                <a asp-controller="SurveyCreation"
-                                                   asp-action="Edit"
-                                                   asp-route-id="@survey.SurveyId"
-                                                   class="btn btn-sm btn-primary"
-                                                   title="Edit">
-                                                    <i class="bi bi-pencil"></i>
-                                                </a>
-                                                <!-- New Locations button -->
-                                                <a asp-controller="SurveyCreation"
-                                                   asp-action="SurveyLocation"
-                                                   asp-route-surveyId="@survey.SurveyId"
-                                                   asp-route-SurveyName="@survey.SurveyName
-"
-                                                   class="btn btn-sm btn-info"
-                                                   title="View Locations">
-                                                    <i class="bi bi-geo-alt-fill"></i>
-                                                </a>
-                                                <!-- Other buttons -->
-                                                <button type="button"
-                                                        class="btn btn-sm btn-primary"
-                                                        title="View"
-                                                        onclick="openSurveyDetailsModal(@survey.SurveyId)">
-                                                    <i class="bi bi-file-earmark-spreadsheet"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        srNo++;
-                                    }
-                                }
-                                else
-                                {
-                                    <tr>
-                                        <td colspan="9" class="text-center py-4">
-                                            <i class="bi bi-inbox fs-1 text-muted"></i>
-                                            <p class="text-muted">No surveys found. Click "Add New Survey" to create one.</p>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        <div class="row g-3 mt-2">
+                            @foreach (var survey in Model)
+                            {
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="card h-100 shadow-sm border-0 hover-lift">
+                                        <div class="card-header card-h bg-light border-0 d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-purple">ID: @survey.SurveyId</span>
+                                            <span class="badge bg-@(survey.SurveyStatus == "Pending" ? "secondary" : 
+                                                                    survey.SurveyStatus == "In Progress" ? "warning" : 
+                                                                    survey.SurveyStatus == "Completed" ? "success" :
+                                                                    survey.SurveyStatus == "Created" ? "primary" : "danger")">
+                                                @survey.SurveyStatus
+                                            </span>
+                                        </div>
+                                        <div class="card-body">
+                                            <h5 class="card-title text-dark fw-semibold mb-3">
+                                                <i class="bi bi-clipboard-data text-primary me-2"></i>@survey.SurveyName
+                                            </h5>
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="bi bi-building me-1"></i><strong>Type:</strong>
+                                                </small>
+                                                <span class="text-dark">@survey.ImplementationType</span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="bi bi-calendar-event me-1"></i><strong>Date:</strong>
+                                                </small>
+                                                <span class="text-dark">@(survey.SurveyDate?.ToString("dd-MMM-yyyy") ?? "-")</span>
+                                            </div>
+                                            <div class="mb-2">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="bi bi-people me-1"></i><strong>Team:</strong>
+                                                </small>
+                                                <span class="text-dark">@survey.SurveyTeamName</span>
+                                            </div>
+                                            <div class="mb-3">
+                                                <small class="text-muted d-block mb-1">
+                                                    <i class="bi bi-geo-alt me-1"></i><strong>Location:</strong>
+                                                </small>
+                                                <span class="text-dark">@survey.LocationSiteName, @survey.CityDistrict</span>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer bg-white border-0 d-flex gap-2 justify-content-center pb-3">
+                                            <a asp-controller="SurveyCreation"
+                                               asp-action="Edit"
+                                               asp-route-id="@survey.SurveyId"
+                                               class="btn btn-sm btn-warning"
+                                               title="Edit Survey">
+                                                <i class="bi bi-pencil me-1"></i>Edit
+                                            </a>
+                                            <a asp-controller="SurveyCreation"
+                                               asp-action="SurveyLocation"
+                                               asp-route-surveyId="@survey.SurveyId"
+                                               asp-route-SurveyName="@survey.SurveyName"
+                                               class="btn btn-sm btn-info"
+                                               title="View Locations">
+                                                <i class="bi bi-geo-alt-fill me-1"></i>Locations
+                                            </a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-success"
+                                                    title="View Details"
+                                                    onclick="openSurveyDetailsModal(@survey.SurveyId)">
+                                                <i class="bi bi-file-earmark-spreadsheet me-1"></i>Details
+                                            </button>
+                                            <a asp-controller="SurveyCreation"
+                                               asp-action="SurveyAssignment"
+                                               asp-route-surveyId="@survey.SurveyId"
+                                               asp-route-SurveyName="@survey.SurveyName"
+                                               class="btn btn-sm btn-primary"
+                                               title="Assign Team">
+                                                <i class="bi bi-people-fill me-1"></i>Team
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+                            <p class="text-muted fs-5">No surveys found. Click "Add New Survey" to create one.</p>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -127,6 +135,28 @@
 
 @section Scripts {
     @Html.AntiForgeryToken()
+    <style>
+        .hover-lift {
+            transition: all 0.3s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        }
+        .card-title {
+            min-height: 48px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .card-h{
+            --bs-bg-opacity: 1;
+            background-color: rgb(159 139 233 / 78%) !important;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+    </style>
     <script>
         function openEditModal(id) {
             var url = '@Url.Action("Edit", "SurveyCreation")' + '/' + id;

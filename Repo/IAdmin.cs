@@ -1,4 +1,5 @@
 ﻿using AnalyticaDocs.Models;
+using SurveyApp.Models;
 namespace AnalyticaDocs.Repo
 {
     public interface IAdmin
@@ -15,6 +16,8 @@ namespace AnalyticaDocs.Repo
         List<UsersRightsModel> GetUserRights(int RecordID);
 
         bool UpdateRights(UsersRightsFormModel model);
+        List<EmpMasterModel> GetEmpMaster();
+
 
     }
 }
