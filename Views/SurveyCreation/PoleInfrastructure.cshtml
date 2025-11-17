@@ -1,0 +1,299 @@
+@{
+    ViewData["Title"] = "Pole Infrastructure";
+    // All pole types
+    var poleTypes = new[] { "Iron Pole", "Concrete Pole", "Telecom Pole", "Surveillance Pole" };
+    // Cantilever types
+    var cantileverTypes = new[] { "1 Meter", "2 Meter", "3 Meter", "4 Meter" };
+    // Dummy pole data
+    var poles = new[] {
+        new { Name = "Iron Pole", Count = 2 },
+        new { Name = "Concrete Pole", Count = 3 },
+        new { Name = "Telecom Pole", Count = 1 }
+    };
+    // Dummy surveillance poles with cantilevers
+    var surveillancePoles = new[] {
+        new { Name = "Pole 1", Cantilevers = new[] { "1 Meter", "2 Meter" } },
+        new { Name = "Pole 2", Cantilevers = new[] { "2 Meter" } }
+    };
+}
+
+<form method="post" enctype="multipart/form-data" id="poleForm">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <div class="card shadow mt-6">
+                    <div class="card-header bg-purple mb-8 py-2">
+                        <div class="row">
+                            <div class="col-6">
+                                @{
+                                    ViewData["Title"] = "Pole Infrastructure";
+                                    var ironPoleCount = 2;
+                                    var concretePoleCount = 3;
+                                    var telecomPoleCount = 1;
+                                    var existingPoleRemarks = "All poles inspected.";
+                                    var surveillancePoles = new[] {
+                                        new { Name = "Pole 1", Cantilevers = new[] { "1 Meter", "2 Meter" } },
+                                        new { Name = "Pole 2", Cantilevers = new[] { "2 Meter" } }
+                                    };
+                                }
+
+                                <div class="container-fluid py-4" style="background:#f7f8fa; min-height:90vh;">
+                                    <div class="row justify-content-center">
+                                        <div class="col-12 col-lg-9">
+                                            <div class="card shadow border-0">
+                                                <div class="card-header bg-purple py-3">
+                                                    <h4 class="text-white mb-0">Pole Infrastructure</h4>
+                                                </div>
+                                                <div class="card-body px-4 py-5">
+                                                    <form>
+                                                        <div class="mb-4">
+                                                            <h6 class="fw-semibold mb-3">Existing Pole Details</h6>
+                                                            <div class="row g-3 mb-3">
+                                                                @foreach (var pole in poles)
+                                                                {
+                                                                    <div class="col-md-4">
+                                                                        <label class="form-label">@pole.Name</label>
+                                                                        <input type="number" class="form-control" value="@pole.Count" min="0" />
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label class="form-label">Images</label>
+                                                                <input type="file" class="d-none pole-upload-input" multiple accept="image/*" />
+                                                                <div class="d-flex gap-2 mb-2">
+                                                                    <button type="button" class="btn btn-outline-secondary btn-sm pole-browse-btn"><i class="bi bi-folder2-open"></i> Browse</button>
+                                                                    <button type="button" class="btn btn-outline-secondary btn-sm pole-take-btn"><i class="bi bi-camera"></i> Take</button>
+                                                                    <button type="button" class="btn btn-outline-secondary btn-sm pole-gallery-btn"><i class="bi bi-image"></i> Gallery</button>
+                                                                </div>
+                                                                <div class="pole-preview d-flex flex-wrap mb-2"></div>
+                                                            </div>
+                                                            <label class="form-label">Remarks</label>
+                                                            <textarea class="form-control" rows="2">@existingPoleRemarks</textarea>
+                                                        </div>
+                                                        <div class="mb-4">
+                                                            <h6 class="fw-semibold mb-3">Surveillance Poles</h6>
+                                                            @foreach (var pole in surveillancePoles)
+                                                            {
+                                                                <div class="card mb-3 border-0 shadow-sm">
+                                                                    <div class="card-body">
+                                                                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap">
+                                                                            <strong>@pole.Name</strong>
+                                                                            <button type="button" class="btn btn-link text-danger">Remove Pole</button>
+                                                                        </div>
+                                                                        <div class="row g-3 mb-2">
+                                                                            @foreach (var cantilever in pole.Cantilevers)
+                                                                            {
+                                                                                <div class="col-md-6">
+                                                                                    <label class="form-label">Cantilever Length</label>
+                                                                                    <select class="form-select">
+                                                                                        <option value="">Select Length</option>
+                                                                                        @foreach (var type in cantileverTypes)
+                                                                                        {
+                                                                                            <option value="@type" selected="@(cantilever == type ? "selected" : null)">@type</option>
+                                                                                        }
+                                                                                    </select>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <label class="form-label">Quantity</label>
+                                                                                    <input type="number" class="form-control" value="1" min="1" />
+                                                                                </div>
+                                                                            }
+                                                                        </div>
+                                                                        <div class="d-flex gap-2 mb-2">
+                                                                            <button type="button" class="btn btn-outline-primary btn-sm">Add Cantilever</button>
+                                                                            <button type="button" class="btn btn-outline-danger btn-sm">Remove Cantilever</button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                        <div class="text-end mt-4">
+                                                            <button type="submit" class="btn btn-gradient-primary px-4 py-2 fw-semibold">Submit</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pole Image Capture Modal -->
+                                <div id="poleVideoModal" class="modal fade" tabindex="-1">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Capture Image</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body text-center">
+                                                <video id="poleCaptureVideo" autoplay playsinline style="max-width:100%;height:400px;border-radius:8px;"></video>
+                                                <div class="mt-3 d-flex justify-content-center gap-3">
+                                                    <button type="button" class="btn btn-gradient-primary px-4 py-2 fw-semibold" id="poleCaptureBtn"><i class="bi bi-camera me-2"></i> Capture</button>
+                                                    <button type="button" class="btn btn-outline-danger px-4 py-2 fw-semibold" data-bs-dismiss="modal"><i class="bi bi-x-circle me-2"></i> Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <style>
+                                .pole-preview-wrapper{width:120px;height:90px;overflow:hidden;border:1px solid #dee2e6;border-radius:4px;padding:4px;background:#fff;position:relative}
+                                .pole-preview-img{width:100%;height:100%;object-fit:cover}
+                                .pole-preview-wrapper .btn-danger.position-absolute{display:none;top:2px;right:2px;z-index:2}
+                                .pole-preview-wrapper:hover .btn-danger.position-absolute{display:block}
+                                </style>
+
+                                            <span>Total:</span>
+                                                <span id="ALPRTotal" class="fw-bold">@Model.ALPRPoles.Count.ToString("D2")</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap">
+                                            <label class="form-label mb-0">Number of Poles</label>
+                                            <button type="button" id="addALPRPole" class="btn btn-primary btn-sm">Add Pole</button>
+                                        </div>
+                                        <div id="ALPRPolesContainer" class="mb-3">
+                                        </div>
+                                        <div class="row gx-4 gy-4">
+                                            <div class="col-12">
+                                                <label class="form-label">ALPR Images</label>
+                                                <input type="file" name="ALPRDept.Images" multiple class="form-control" accept="image/*" capture="environment" />
+                                                <button type="button" id="captureALPRImage" class="btn btn-primary btn-sm mt-2">Capture Image</button>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-custom-floating">
+                                                    <textarea name="ALPRDept.Remarks" class="form-control" placeholder=" " rows="2" style="min-height: 80px;"></textarea>
+                                                    <label>ALPR Remarks</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Traffic Pole Section -->
+                            <div class="col-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header bg-purple py-2">
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                            <h6 class="text-white mb-0">Traffic Pole</h6>
+                                            <div class="text-white">
+                                                <span>Total:</span>
+                                                <span id="TrafficTotal" class="fw-bold">@Model.TrafficPoles.Count.ToString("D2")</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap">
+                                            <label class="form-label mb-0">Number of Poles</label>
+                                            <button type="button" id="addTrafficPole" class="btn btn-primary btn-sm">Add Pole</button>
+                                        </div>
+                                        <div id="TrafficPolesContainer" class="mb-3">
+                                        </div>
+                                        <div class="row gx-4 gy-4">
+                                            <div class="col-12">
+                                                <label class="form-label">Traffic Images</label>
+                                                <input type="file" name="TrafficDept.Images" multiple class="form-control" accept="image/*" capture="environment" />
+                                                <button type="button" id="captureTrafficImage" class="btn btn-primary btn-sm mt-2">Capture Image</button>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-custom-floating">
+                                                    <textarea name="TrafficDept.Remarks" class="form-control" placeholder=" " rows="2" style="min-height: 80px;"></textarea>
+                                                    <label>Traffic Remarks</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Gantry Details -->
+                            <div class="col-12">
+                                <div class="card shadow-sm">
+                                    <div class="card-header bg-purple py-2">
+                                        <h6 class="text-white mb-0">Gantry Details</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row gx-4 gy-4">
+                                            <div class="col-12">
+                                                <label class="form-label">Gantry Quantity</label>
+                                                <div class="d-flex align-items-center mt-1">
+                                                    <button type="button" data-target="GantryQuantity" class="qty-decrement btn btn-danger btn-sm">-</button>
+                                                    <input type="number" id="GantryQuantity" name="Gantry.Quantity" class="mx-2 form-control text-center" value="0" min="0" style="max-width:80px;" />
+                                                    <button type="button" data-target="GantryQuantity" class="qty-increment btn btn-success btn-sm">+</button>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <label class="form-label">Gantry Images</label>
+                                                <input type="file" name="Gantry.Images" multiple class="form-control" accept="image/*" capture="environment" />
+                                                <button type="button" id="captureGantryImage" class="btn btn-primary btn-sm mt-2">Capture Image</button>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="form-custom-floating">
+                                                    <textarea name="Gantry.Remarks" class="form-control" placeholder=" " rows="2" style="min-height: 80px;"></textarea>
+                                                    <label>Gantry Remarks</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Distance & Permission -->
+                            <div class="col-12">
+                                <div class="form-custom-floating">
+                                    <textarea name="Distance" class="form-control" placeholder=" " rows="2" style="min-height: 80px;"></textarea>
+                                    <label>Distance between poles (meters)</label>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Is permission required?</label>
+                                <div class="d-flex gap-3 mt-2 flex-wrap">
+                                    <label class="form-check-label">
+                                        <input type="radio" class="form-check-input" name="PermissionRequired" value="yes" /> Yes
+                                    </label>
+                                    <label class="form-check-label">
+                                        <input type="radio" class="form-check-input" name="PermissionRequired" value="no" /> No
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer mt-12">
+                        <div class="row">
+                            <div class="col text-end">
+                                <button type="submit" class="btn btn-primary me-2"><i class="bi bi-check2-circle me-2"></i> Save & Upload</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script src="~/js/poleInfrastructure.js"></script>
+    <script>
+        function showBackConfirmModal(url, message) {
+            let modal = document.getElementById("backConfirmModal");
+
+            if (message) {
+                modal.querySelector(".modal-body").innerText = message;
+            }
+
+            // set URL on continue button
+            document.getElementById("confirmContinueBtn").setAttribute("href", url);
+
+            // show modal
+            var myModal = new bootstrap.Modal(modal, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            myModal.show();
+        }
+    </script>
+}
