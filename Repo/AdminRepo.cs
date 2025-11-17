@@ -292,6 +292,31 @@ namespace AnalyticaDocs.Repo
             }
         }
 
+        public List<RegionMasterModel> GetRegionMaster()
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpCommonOptions", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+
+                cmd.Parameters.AddWithValue("@SpType", 3); 
+
+                con.Open();
+
+                using var adapter = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                adapter.Fill(dt);
+
+                List<RegionMasterModel> Regions = SqlDbHelper.DataTableToList<RegionMasterModel>(dt);
+                return Regions;
+            }
+            catch (Exception ex)
+            {
+                // log ex.ToString()
+                throw;
+            }
+        }
     }
 
 }

@@ -15,9 +15,7 @@
                 <div class="card-body p-4">
                     <form asp-controller="SurveyCreation" asp-action="CreateSurveyAssignment" method="post">
                         @Html.AntiForgeryToken()
-                        
                         <input type="hidden" asp-for="SurveyID" />
-                        
                         <div class="mb-3">
                             <label class="form-label fw-bold">Survey ID</label>
                             <input type="text" class="form-control" value="@Model.SurveyID" readonly />

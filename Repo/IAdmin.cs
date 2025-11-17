@@ -17,7 +17,6 @@ namespace AnalyticaDocs.Repo
 
         bool UpdateRights(UsersRightsFormModel model);
         List<EmpMasterModel> GetEmpMaster();
-
-
+        List<RegionMasterModel> GetRegionMaster();
     }
 }

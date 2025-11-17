@@ -14,7 +14,7 @@ namespace SurveyApp.Controllers
         private readonly ICommonUtil _util;
         private readonly IAdmin _adminRepository; 
 
-        public SurveyCreationController(ISurvey surveyRepository, ICommonUtil util, IAdmin adminRepository) // <-- Add IAdmin parameter
+        public SurveyCreationController(ISurvey surveyRepository, ICommonUtil util, IAdmin adminRepository)
         {
             _surveyRepository = surveyRepository;
             _util = util;
@@ -68,7 +68,6 @@ namespace SurveyApp.Controllers
             return View();
         }
 
-
         // GET: SurveyCreation/Index - List all surveys
         public IActionResult Index()
         {
@@ -89,6 +88,7 @@ namespace SurveyApp.Controllers
         // GET: SurveyCreation/Create
         public IActionResult Create()
         {
+            ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc");
             return View("SurveyCreation", new SurveyModel());
         }
 
@@ -103,15 +103,15 @@ namespace SurveyApp.Controllers
                 {
                     TempData["ResultMessage"] = "<strong>Validation Error!</strong> Please check all required fields.";
                     TempData["ResultType"] = "warning";
+                    ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc", model.RegionID);
                     return View("SurveyCreation", model);
                 }
-               
-
+                
                 // Set CreatedBy from session
                 model.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
 
                 bool result = _surveyRepository.AddSurvey(model);
-
+                
                 if (result)
                 {
                     TempData["ResultMessage"] = "<strong>Success!</strong> Survey created successfully.";
@@ -122,6 +122,7 @@ namespace SurveyApp.Controllers
                 {
                     TempData["ResultMessage"] = "<strong>Error!</strong> Failed to create survey.";
                     TempData["ResultType"] = "danger";
+                    ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc", model.RegionID);
                     return View("SurveyCreation", model);
                 }
             }
@@ -129,6 +130,7 @@ namespace SurveyApp.Controllers
             {
                 TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
                 TempData["ResultType"] = "danger";
+                ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc", model.RegionID);
                 return View("SurveyCreation", model);
             }
         }
@@ -149,6 +151,7 @@ namespace SurveyApp.Controllers
                 TempData["ResultType"] = "warning";
                 return RedirectToAction("Index"); // Render full page for normal navigation
             }
+            ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc", survey.RegionID);
             return View("SurveyEdit", survey); // Render full page for normal navigation
 
         }
@@ -164,6 +167,7 @@ namespace SurveyApp.Controllers
                 {
                     TempData["ResultMessage"] = "<strong>Validation Error!</strong> Please check all required fields.";
                     TempData["ResultType"] = "warning";
+                    ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc", model.RegionID);
                     return View("SurveyEdit", model);
                 }
 
@@ -182,6 +186,7 @@ namespace SurveyApp.Controllers
                 {
                     TempData["ResultMessage"] = "<strong>Error!</strong> Failed to update survey.";
                     TempData["ResultType"] = "danger";
+                    ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc", model.RegionID);
                     return View("SurveyEdit", model);
                 }
             }
@@ -189,6 +194,7 @@ namespace SurveyApp.Controllers
             {
                 TempData["ResultMessage"] = $"<strong>Error!</strong> {ex.Message}";
                 TempData["ResultType"] = "danger";
+                ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc", model.RegionID);
                 return View("SurveyEdit", model);
             }
         }
@@ -349,7 +355,6 @@ namespace SurveyApp.Controllers
                 {
                     // Create new location
                     result = _surveyRepository.AddSurveyLocation(model);
-            
                     if (result)
                     {
                         TempData["ResultMessage"] = "<strong>Success!</strong> Location added successfully.";
@@ -361,7 +366,6 @@ namespace SurveyApp.Controllers
                         TempData["ResultType"] = "danger";
                     }
                 }
-
                 return RedirectToAction("SurveyLocation", new { surveyId = model.SurveyID, SurveyName = ViewBag.SelectedSurveyName });
             }
             catch (Exception ex)
@@ -447,7 +451,6 @@ namespace SurveyApp.Controllers
                 {
                     item.IsAssigned = selectedIds.Contains(item.Id);
                 }
-
                 ViewBag.LocId = locId; // Pass locId to the view if needed
                 ViewBag.SelectedSurveyId = surveyId;
                 ViewBag.SelectedSurveyName = SurveyName;
@@ -465,7 +468,6 @@ namespace SurveyApp.Controllers
         [HttpGet]
         public IActionResult ItemTypeMaster(int locId, Int64 surveyId)
         {
-
             var formModel = new AssignedItemsModel
             {
                 SurveyId = surveyId,
@@ -473,12 +475,8 @@ namespace SurveyApp.Controllers
 
                 AssignItemList = _surveyRepository.GetItemTypebySurveyLoc(locId, surveyId) ?? new List<AssignedItemsListModel>()
             };
-
-
             return View("ItemTypeMaster", formModel);
-
         }
-
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -539,9 +537,5 @@ namespace SurveyApp.Controllers
                 return RedirectToAction("Index");
             }
         }
-
-
-
-
     }
 }
