@@ -613,7 +613,132 @@ namespace SurveyApp.Repo
         //        throw;
         //    }
         //}
+        //------------------- Survey Details -------------------//
 
+        public List<SurveyDetailsLocationModel> GetAssignedTypeList(long SurveyID, int LocId)
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurveyDetails", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 2);
+                cmd.Parameters.AddWithValue("@SurveyID", SurveyID);
+                cmd.Parameters.AddWithValue("@LocID", LocId);
+
+                con.Open();
+
+                using var adapter = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                adapter.Fill(dt);
+
+                List<SurveyDetailsLocationModel> result = SqlDbHelper.DataTableToList<SurveyDetailsLocationModel>(dt);
+                return result;
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
+        public List<SurveyDetailsModel> GetAssignedItemList(long SurveyID, int LocId, int ItemTypeID)
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurveyDetails", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 3);
+                cmd.Parameters.AddWithValue("@SurveyID", SurveyID);
+                cmd.Parameters.AddWithValue("@LocID", LocId);
+                cmd.Parameters.AddWithValue("@ItemTypeID", ItemTypeID);
+
+                con.Open();
+
+                using var adapter = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                adapter.Fill(dt);
+
+                List<SurveyDetailsModel> result = SqlDbHelper.DataTableToList<SurveyDetailsModel>(dt);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public List<SurveyDetailsUpdatelist> GetSurveyUpdateItemList(long SurveyID, int LocId, int ItemTypeID)
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+                using var cmd = new SqlCommand("dbo.SpSurveyDetails", con);
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@SpType", 4);
+                cmd.Parameters.AddWithValue("@SurveyID", SurveyID);
+                cmd.Parameters.AddWithValue("@LocID", LocId);
+                cmd.Parameters.AddWithValue("@ItemTypeID", ItemTypeID);
+
+                con.Open();
+
+                using var adapter = new SqlDataAdapter(cmd);
+                var dt = new DataTable();
+                adapter.Fill(dt);
+
+                List<SurveyDetailsUpdatelist> result = SqlDbHelper.DataTableToList<SurveyDetailsUpdatelist>(dt);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+        public bool UpdateSurveyDetails(SurveyDetailsUpdate model)
+        {
+            using var con = new SqlConnection(DBConnection.ConnectionString);
+            con.Open();
+
+            using var transaction = con.BeginTransaction();
+            try
+            {
+
+
+                foreach (var items in model.ItemLists)
+                {
+                    using var cmd = new SqlCommand("dbo.SpSurveyDetails", con, transaction);
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    cmd.Parameters.AddWithValue("@SpType", 1);
+                    cmd.Parameters.AddWithValue("@SurveyID", model.SurveyID);
+                    cmd.Parameters.AddWithValue("@LocID", model.LocID);
+                    cmd.Parameters.AddWithValue("@ItemTypeID", model.ItemTypeID);
+                    cmd.Parameters.AddWithValue("@ItemID", items.ItemID);
+                    cmd.Parameters.AddWithValue("@ItemQtyExist", items.ItemQtyExist);
+                    cmd.Parameters.AddWithValue("@ItemQtyReq", items.ItemQtyReq);
+                    cmd.Parameters.AddWithValue("@ImgPath", items.ImgPath);
+                    cmd.Parameters.AddWithValue("@ImgID", items.ImgID);
+                    cmd.Parameters.AddWithValue("@Remarks", items.Remarks);
+                    cmd.Parameters.AddWithValue("@CreateBy", model.CreateBy);
+
+                    int result = cmd.ExecuteNonQuery();
+                    if (result <= 0)
+                    {
+                        transaction.Rollback();
+                        return false;
+                    }
+                }
+
+                transaction.Commit();
+                return true;
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+                return false;
+            }
+        }
 
     }
 }

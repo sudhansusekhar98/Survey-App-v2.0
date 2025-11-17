@@ -192,6 +192,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5Q3JlYXRpb25cX1N1cnZleUVkaXRQYXJ0aWFsLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyDetails/CameraDevicesView.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5RGV0YWlsc1xDYW1lcmFEZXZpY2VzVmlldy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyDetails/SurveyDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5RGV0YWlsc1xTdXJ2ZXlEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/VL Access/Survey/Survey App/survey-app-main/Views/SurveyDetails/UpdateSurveyDetails.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU3VydmV5RGV0YWlsc1xVcGRhdGVTdXJ2ZXlEZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/VL Access/Survey/Survey App/survey-app-main/Views/UserLogin/LoginBasic.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVXNlckxvZ2luXExvZ2luQmFzaWMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 

@@ -27,6 +27,17 @@ namespace SurveyApp.Repo
 
         List<SurveyAssignmentModel>? GetSurveyAssignments(Int64 surveyId);
         bool AddSurveyAssignment(SurveyAssignmentModel assignment);
+
+
+        //------------------- Survey Details -------------------//
+
+        List<SurveyDetailsLocationModel> GetAssignedTypeList(Int64 SurveyID, int LocId);
+
+        List<SurveyDetailsModel> GetAssignedItemList(Int64 SurveyID, int LocId, int ItemTypeID);
+
+        List<SurveyDetailsUpdatelist> GetSurveyUpdateItemList(Int64 SurveyID, int LocId, int ItemTypeID);
+
+        public bool UpdateSurveyDetails(SurveyDetailsUpdate model);
     }
 }
 
