@@ -55,6 +55,16 @@
 
                             <div class="col-12 col-md-6">
                                 <div class="form-custom-floating">
+                                    <select asp-for="RegionID" asp-items="@(ViewBag.Regions as SelectList)" class="form-select" placeholder=" ">
+                                        <option value="">--Select Region--</option>
+                                    </select>
+                                    <label asp-for="RegionID"></label>
+                                    <span asp-validation-for="RegionID" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <div class="form-custom-floating">
                                     <select asp-for="ImplementationType" asp-items="Model.ImplementationTypeOptions" class="form-select" placeholder=" ">
                                         <option value="">--Select--</option>
                                     </select>
@@ -104,12 +114,6 @@
                                 </div>
                             </div>
 
-                            <div class="col-12 col-md-6">
-                                <div class="form-custom-floating">
-                                    <input asp-for="ZoneSectorWardNumber" type="text" class="form-control" placeholder=" ">
-                                    <label asp-for="ZoneSectorWardNumber"></label>
-                                </div>
-                            </div>
 
                             <div class="col-12">
                                 <div class="form-custom-floating">

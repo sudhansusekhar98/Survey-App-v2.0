@@ -31,29 +31,20 @@ namespace SurveyApp.Repo
 
                 // Your SP expects SurveyDate as varchar(100) � keep same format or adjust SP to accept DATE.
                 // If your model uses DateTime? convert to string (yyyy-MM-dd) or pass as DBNull if null.
-                if (survey.SurveyDate == null)
-                    cmd.Parameters.AddWithValue("@SurveyDate", DBNull.Value);
-                else
-                {
-                        
-                }
-                    cmd.Parameters.AddWithValue("@SurveyDate", survey.SurveyDate);
+                cmd.Parameters.AddWithValue("@SurveyDate", survey.SurveyDate ?? (object)DBNull.Value);
 
                 cmd.Parameters.AddWithValue("@SurveyTeamName", survey.SurveyTeamName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SurveyTeamContact", survey.SurveyTeamContact ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@AgencyName", survey.AgencyName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@LocationSiteName", survey.LocationSiteName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@CityDistrict", survey.CityDistrict ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@ZoneSectorWardNumber", survey.ZoneSectorWardNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ScopeOfWork", survey.ScopeOfWork ?? (object)DBNull.Value);
-
                 cmd.Parameters.AddWithValue("@Latitude", survey.Latitude ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Longitude", survey.Longitude ?? (object)DBNull.Value);
-
                 cmd.Parameters.AddWithValue("@MapMarking", survey.MapMarking ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SurveyStatus", survey.SurveyStatus ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@RegionID", survey.RegionID);
 
-                
                 if (survey.CreatedBy == 0)
                     cmd.Parameters.AddWithValue("@CreatedBy", DBNull.Value);
                 else
@@ -93,12 +84,12 @@ namespace SurveyApp.Repo
                 cmd.Parameters.AddWithValue("@AgencyName", survey.AgencyName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@LocationSiteName", survey.LocationSiteName ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@CityDistrict", survey.CityDistrict ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@ZoneSectorWardNumber", survey.ZoneSectorWardNumber ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@ScopeOfWork", survey.ScopeOfWork ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Latitude", survey.Latitude ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Longitude", survey.Longitude ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@MapMarking", survey.MapMarking ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@SurveyStatus", survey.SurveyStatus ?? (object)DBNull.Value);
+                cmd.Parameters.AddWithValue("@RegionID", survey.RegionID);
                 cmd.Parameters.AddWithValue("@CreatedBy", survey.CreatedBy);
 
                 con.Open();
@@ -519,7 +510,7 @@ namespace SurveyApp.Repo
                     cmd.Parameters.AddWithValue("@LocID", model.LocID);
                     cmd.Parameters.AddWithValue("@ItemTypeID", right.ItemTypeID);
                     cmd.Parameters.AddWithValue("@IsAssigned", right.IsAssigned ? 1 : 0);
-                    cmd.Parameters.AddWithValue("@CreatedBy", model.CreatedBy);
+                    cmd.Parameters.AddWithValue("@CreatedBy", model.CreatedBy ?? (object)DBNull.Value);
 
                     int result = cmd.ExecuteNonQuery();
                     if (result <= 0)
@@ -574,7 +565,7 @@ namespace SurveyApp.Repo
                 cmd.Parameters.AddWithValue("@SurveyID", assignment.SurveyID);
                 cmd.Parameters.AddWithValue("@EmpID", assignment.EmpID);
                 cmd.Parameters.AddWithValue("@DueDate", assignment.DueDate);
-                cmd.Parameters.AddWithValue("@CreatedBy", assignment.CreateBy);
+                cmd.Parameters.AddWithValue("@CreatedBy", assignment.CreateBy ?? (object)DBNull.Value);
                 con.Open();
                 int rowsAffected = cmd.ExecuteNonQuery();
                 return rowsAffected > 0;

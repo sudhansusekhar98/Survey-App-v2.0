@@ -32,9 +32,6 @@ namespace SurveyApp.Models
         [Display(Name = "City/District")]
         public string? CityDistrict { get; set; }
 
-        [Display(Name = "Zone/Sector/Ward Number")]
-        public string? ZoneSectorWardNumber { get; set; }
-
         [Display(Name = "Scope of Work")]
         public string? ScopeOfWork { get; set; }
 
@@ -49,8 +46,11 @@ namespace SurveyApp.Models
 
         [Display(Name = "Survey Status")]
         public string? SurveyStatus { get; set; }
-
         public int CreatedBy { get; set; }
+
+        [Display(Name = "Region")]
+        public int? RegionID { get; set; }
+        public string? RegionName { get; set; }
 
         // Options for dropdowns
         public List<SelectListItem> StatusOptions { get; set; } = new List<SelectListItem>
