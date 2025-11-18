@@ -19,7 +19,8 @@ namespace AnalyticaDocs.Controllers
         }
         public IActionResult Index()
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, rightsId, null, null, "View");
             if (result != null) return result;
 
             ViewBag.UserOptions =  _util.GetUserOptions();
@@ -43,7 +44,8 @@ namespace AnalyticaDocs.Controllers
 
         public IActionResult BindRecord(int? recordId)
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, rightsId, null, null, "View");
             if (result != null) return result;
 
             if (!recordId.HasValue || recordId.Value==0)
@@ -74,7 +76,8 @@ namespace AnalyticaDocs.Controllers
         public IActionResult UpdateRights(UsersRightsFormModel model)
         {
             
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, rightsId, null, null, "Update");
             if (result != null) return Json("unauthorized");
 
             if (!ModelState.IsValid)

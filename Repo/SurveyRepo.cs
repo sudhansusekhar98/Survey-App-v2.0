@@ -103,7 +103,7 @@ namespace SurveyApp.Repo
             }
         }
 
-        public List<SurveyModel> GetAllSurveys()
+        public List<SurveyModel> GetAllSurveys(int UserId)
         {
             try
             {
@@ -111,6 +111,7 @@ namespace SurveyApp.Repo
                 using var cmd = new SqlCommand("dbo.SpSurvey", con);
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@SpType", 2);
+                cmd.Parameters.AddWithValue("@CreatedBy", UserId);
 
                 con.Open();
 

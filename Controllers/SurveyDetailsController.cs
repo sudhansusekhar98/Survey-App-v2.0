@@ -1,5 +1,4 @@
 ﻿using AnalyticaDocs.Models;
-using AnalyticaDocs.Repo;
 using AnalyticaDocs.Repository;
 using Microsoft.AspNetCore.Mvc;
 using SurveyApp.Models;
@@ -19,16 +18,22 @@ namespace SurveyApp.Controllers
             _util = util;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(long? surveyId, int? locId)
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "View");
             if (result != null) return result;
 
-            long surveyId = 20251112001;
-            int locId = 123;
+            // If no parameters provided, redirect to survey list
+            if (!surveyId.HasValue || !locId.HasValue)
+            {
+                TempData["ResultMessage"] = "Please select a survey and location.";
+                TempData["ResultType"] = "warning";
+                return RedirectToAction("Index", "SurveyCreation");
+            }
 
             // Get the list of types/locations assigned
-            var deviceTypes = _repository.GetAssignedTypeList(surveyId, locId)
+            var deviceTypes = _repository.GetAssignedTypeList(surveyId.Value, locId.Value)
                               ?? new List<SurveyDetailsLocationModel>();
 
             var modelList = new List<SurveyDetailsLocationModel>();
@@ -55,18 +60,25 @@ namespace SurveyApp.Controllers
                 });
             }
 
+            ViewBag.SelectedSurveyId = surveyId.Value;
+            ViewBag.SelectedLocId = locId.Value;
+
             // Pass the list as the model to the view
             return View("SurveyDetails", modelList);
         }
 
         public IActionResult UpdateItem(Int64 surveyId, int locId, int itemTypeID, int itemId)
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "Update");
             if (result != null) return result;
 
-            if (surveyId <= 0 && itemTypeID <= 0 && locId <= 0)
-                return RedirectToAction("Index");
-
+            if (surveyId <= 0 || itemTypeID <= 0 || locId <= 0)
+            {
+                TempData["ResultMessage"] = "Invalid survey, location, or item type.";
+                TempData["ResultType"] = "error";
+                return RedirectToAction("Index", new { surveyId, locId });
+            }
 
             var formModel = new SurveyDetailsUpdate
             {
@@ -75,61 +87,59 @@ namespace SurveyApp.Controllers
                 ItemTypeID = itemTypeID,
                 ItemLists = _repository.GetSurveyUpdateItemList(surveyId, locId, itemTypeID) ?? new List<SurveyDetailsUpdatelist>()
             };
-            return View("CameraDevicesView", formModel);
-            //switch (itemTypeID)
-            //{
-            //    case 100:
 
+            // Get survey and location names for display
+            var surveyInfo = _repository.GetAssignedTypeList(surveyId, locId)?.FirstOrDefault();
+            if (surveyInfo != null)
+            {
+                ViewBag.SelectedSurveyName = surveyInfo.SurveyName;
+                ViewBag.SelectedLocName = surveyInfo.LocName;
+            }
 
+            ViewBag.SelectedSurveyId = surveyId;
+            ViewBag.SelectedLocId = locId;
+            ViewBag.ItemTypeID = itemTypeID;
 
-            //    case 101:
-            //        return View("NetworkSwitchView");
-            //    case 102:
-            //        return View("UPSView");
-            //    case 103:
-            //        return View("RackView");
-            //    case 104:
-            //        return View("PatchPanelView");
-            //    case 105:
-            //        return View("TransceiverView");
-            //    case 106:
-            //        return View("CableView");
-            //    case 107:
-            //        return View("AnnouncementView");
-            //    case 108:
-            //        return View("ImplementationTypeView");
-            //    case 109:
-            //        return View("PoleInfrastructureView");
-            //    case 110:
-            //        return View("CantileverView");
-            //    default:
-            //        return RedirectToAction("Index");
-
-            //}
-
-
+            // Use single dynamic view for all item types
+            return View("ItemMasterSelection", formModel);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult UpdateItem(SurveyDetailsUpdate model)
         {
-            var result = _util.CheckAuthorization(this, "101");
-            if (result != null) return Json("unauthorized");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, model.SurveyID, "Update");
+            if (result != null) return Json(new { success = false, message = "Unauthorized" });
 
-            model.CreateBy = Convert.ToInt32(HttpContext.Session.GetString("UserID"));
+            var userId = HttpContext.Session.GetString("UserID");
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Json(new { success = false, message = "User not logged in" });
+            }
 
+            model.CreateBy = Convert.ToInt32(userId);
 
             if (!ModelState.IsValid)
             {
-                return Json("invalid");
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = "Validation failed", errors });
             }
 
             bool isSaved = _repository.UpdateSurveyDetails(model);
 
-            TempData["ResultMessage"] = "User rights updated successfully.";
-            TempData["ResultType"] = "success";
-            return RedirectToAction("Index");
+            if (isSaved)
+            {
+                TempData["ResultMessage"] = "Survey details updated successfully.";
+                TempData["ResultType"] = "success";
+                return RedirectToAction("Index", new { surveyId = model.SurveyID, locId = model.LocID });
+            }
+            else
+            {
+                TempData["ResultMessage"] = "Failed to update survey details.";
+                TempData["ResultType"] = "error";
+                return RedirectToAction("UpdateItem", new { surveyId = model.SurveyID, locId = model.LocID, itemTypeID = model.ItemTypeID, itemId = 0 });
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

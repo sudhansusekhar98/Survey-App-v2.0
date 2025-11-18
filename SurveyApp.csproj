@@ -108,6 +108,7 @@
   <ItemGroup>
     <Folder Include="Views\Shared\Chart\" />
     <Folder Include="Views\Shared\Popups\" />
+    <Folder Include="wwwroot\SurveyImage\" />
     <Folder Include="wwwroot\vendor\dtPick\" />
   </ItemGroup>
 

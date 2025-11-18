@@ -1,12 +1,17 @@
-﻿@{
-	var cameraTypes = new[] {
-		"ALPR Camera",
-		"Bullet Camera",
-		"Dome Camera",
-		"PTZ Camera",
-		"Thermal Camera",
-		"FRS - Facial Recognition System"
-	};
+@model SurveyApp.Models.SurveyDetailsUpdate
+@{
+	var surveyId = ViewBag.SelectedSurveyId ?? Model?.SurveyID ?? 0;
+	var locId = ViewBag.SelectedLocId ?? Model?.LocID ?? 0;
+	var itemTypeID = ViewBag.ItemTypeID ?? Model?.ItemTypeID ?? 100;
+	var surveyName = ViewBag.SelectedSurveyName ?? "Survey";
+	var locName = ViewBag.SelectedLocName ?? "Location";
+	
+	// Get existing items from database
+	var existingItems = Model?.ItemLists ?? new List<SurveyApp.Models.SurveyDetailsUpdatelist>();
+	
+	// Determine page title from first item or default
+	var pageTitle = existingItems.Any() ? (existingItems.First().ItemName ?? "Survey Items") : "Survey Items";
+	ViewData["Title"] = pageTitle;
 }
 <style>
 .cam-preview-wrapper{width:120px;height:90px;overflow:hidden;border:1px solid #dee2e6;border-radius:4px;padding:4px;background:#fff;position:relative}
@@ -15,113 +20,148 @@
 .cam-preview-wrapper:hover .btn-danger.position-absolute{display:block}
 </style>
 
+<form asp-controller="SurveyDetails" asp-action="UpdateItem" method="post" id="cameraDevicesForm">
+	@Html.AntiForgeryToken()
+	<input type="hidden" asp-for="SurveyID" />
+	<input type="hidden" asp-for="LocID" />
+	<input type="hidden" asp-for="ItemTypeID" />
+	
 <div class="container-fluid">
 	<div class="row">
-		<div class="col-12">
+		<div class="col-12 mb-6">
 			<div class="card shadow mt-4">
 <div class="container py-4">
 	<div class="card-header bg-purple py-2">
 		<div class="row">
-			<div class="col-6"><h6 class="text-white fs-4 pt-1">Camera Devices</h6></div>
-			@* <div class="col-6 text-end"><h6 class="text-white fs-4 pt-1">@surveyName - @locID</h6></div> *@
+			<div class="col-6"><h6 class="text-white fs-4 pt-1">@pageTitle</h6></div>
+			<div class="col-6 text-end">
+				<a href="@Url.Action("Index", "SurveyDetails", new { surveyId = (Model?.SurveyID ?? 0), locId = (Model?.LocID ?? 0) })" class="btn btn-sm btn-outline-light me-2">
+					<i class="bi bi-arrow-left me-1"></i> Back to Survey
+				</a>
+				<span class="text-white">@surveyName - @locName</span>
+			</div>
 		</div>
 	</div>
       </div>
 	<!-- Existing Devices Section -->
 	<div class="card mb-4">
 		<div class="card-body">
-			<h6 class="mb-3">Select the existing types and quantities of cameras <span class="text-danger">*</span></h6>
-			<form>
+			<h6 class="mb-3">Select the existing types and quantities of items <span class="text-danger">*</span></h6>
 				<div class="row g-3 align-items-center">
-					@foreach (var cam in cameraTypes)
+					@if (existingItems != null && existingItems.Any())
 					{
-						<div class="col-md-12 mb-2">
-							<div class="d-flex align-items-center cam-device-row">
-								<button type="button" class="btn btn-danger btn-sm me-2 cam-qty-minus"><i class="bi bi-dash"></i></button>
-								<input type="number" class="form-control text-center mx-1 cam-qty-input" value="0" min="0" style="width:60px;" />
-								<button type="button" class="btn btn-success btn-sm ms-2 cam-qty-plus"><i class="bi bi-plus"></i></button>
-								<span class="ms-3">@cam</span>
-							</div>
-							<div class="cam-extra-section card mt-2 p-3" style="display:none;">
-								<div class="mb-2">
-									<label class="form-label">Images</label>
-									<input type="file" class="form-control mb-2 cam-upload-input" multiple accept="image/*" style="display:none;" />
-									<button type="button" class="btn btn-primary me-2 cam-take-photo-btn"><i class="bi bi-camera"></i> Take Photo</button>
-									<button type="button" class="btn btn-secondary cam-gallery-btn"><i class="bi bi-images"></i> Gallery</button>
-									<div class="cam-preview mt-2 d-flex flex-wrap gap-2"></div>
+						@for (int i = 0; i < existingItems.Count; i++)
+						{
+							var item = existingItems[i];
+							
+							<div class="col-md-12 mb-2">
+								<input type="hidden" name="ItemLists[@i].ItemID" value="@item.ItemID" />
+								<input type="hidden" name="ItemLists[@i].ItemName" value="@item.ItemName" />
+								<input type="hidden" name="ItemLists[@i].ItemCode" value="@item.ItemCode" />
+								<div class="d-flex align-items-center cam-device-row">
+									<button type="button" class="btn btn-danger btn-sm me-2 cam-qty-minus"><i class="bi bi-dash"></i></button>
+									<input type="number" name="ItemLists[@i].ItemQtyExist" class="form-control text-center mx-1 cam-qty-input cam-qty-exist" value="@item.ItemQtyExist" min="0" style="width:60px;" data-index="@i" />
+									<button type="button" class="btn btn-success btn-sm ms-2 cam-qty-plus"><i class="bi bi-plus"></i></button>
+									<span class="ms-3 fw-semibold">@item.ItemName</span>
+									@if (!string.IsNullOrEmpty(item.ItemDesc))
+									{
+										<span class="ms-2 text-muted small">(@item.ItemDesc)</span>
+									}
 								</div>
-								<div>
-									<label class="form-label">Remarks</label>
-									<textarea class="form-control" placeholder="Enter remarks..."></textarea>
+								<div class="cam-extra-section card mt-2 p-3" style="display:@(item.ItemQtyExist > 0 ? "block" : "none");">
+									<div class="mb-2">
+										<label class="form-label">Images</label>
+										<input type="file" class="form-control mb-2 cam-upload-input" multiple accept="image/*" style="display:none;" />
+										<button type="button" class="btn btn-primary me-2 cam-take-photo-btn"><i class="bi bi-camera"></i> Take Photo</button>
+										<button type="button" class="btn btn-secondary cam-gallery-btn"><i class="bi bi-images"></i> Gallery</button>
+										<div class="cam-preview mt-2 d-flex flex-wrap gap-2"></div>
+									</div>
+									<div>
+										<label class="form-label">Remarks</label>
+										<textarea name="ItemLists[@i].Remarks" class="form-control" placeholder="Enter remarks...">@item.Remarks</textarea>
+									</div>
 								</div>
 							</div>
+						}
+					}
+					else
+					{
+						<div class="col-12">
+							<p class="text-muted">No items found in the database for this item type.</p>
 						</div>
 					}
 				</div>
-				<div class="row mt-3">
-					<div class="col-md-8">
-						<input type="text" class="form-control" placeholder="Add Other Existing Devices" />
-					</div>
-					<div class="col-md-4">
-						<button type="button" class="btn btn-primary"><i class="bi bi-plus"></i></button>
-					</div>
-				</div>
-			</form>
 		</div>
 	</div>
 
 	<!-- New Devices Section -->
 	<div class="card mb-4" style="background:#f6fafd;">
 		<div class="card-body">
-			<h6 class="mb-3">Please select the types and quantities of cameras to be deployed</h6>
-			<form>
+			<h6 class="mb-3">Please select the types and quantities of items to be deployed</h6>
 				<div class="row g-3 align-items-center">
-					@foreach (var cam in cameraTypes)
+					@if (existingItems != null && existingItems.Any())
 					{
-						<div class="col-md-12 mb-2">
-							<div class="d-flex align-items-center cam-device-row">
-								<button type="button" class="btn btn-danger btn-sm me-2 cam-qty-minus"><i class="bi bi-dash"></i></button>
-								<input type="number" class="form-control text-center mx-1 cam-qty-input" value="0" min="0" style="width:60px;" />
-								<button type="button" class="btn btn-success btn-sm ms-2 cam-qty-plus"><i class="bi bi-plus"></i></button>
-								<span class="ms-3">@cam</span>
-							</div>
-							<div class="cam-extra-section card mt-2 p-3" style="display:none;">
-								<div class="mb-2">
-									<label class="form-label">Images</label>
-									<input type="file" class="form-control mb-2 cam-upload-input" multiple accept="image/*" style="display:none;" />
-									<button type="button" class="btn btn-primary me-2 cam-take-photo-btn"><i class="bi bi-camera"></i> Take Photo</button>
-									<button type="button" class="btn btn-secondary cam-gallery-btn"><i class="bi bi-images"></i> Gallery</button>
-									<div class="cam-preview mt-2 d-flex flex-wrap gap-2"></div>
+						@for (int j = 0; j < existingItems.Count; j++)
+						{
+							var item = existingItems[j];
+							
+							<div class="col-md-12 mb-2">
+								<div class="d-flex align-items-center cam-device-row">
+									<button type="button" class="btn btn-danger btn-sm me-2 cam-qty-minus"><i class="bi bi-dash"></i></button>
+									<input type="number" name="ItemLists[@j].ItemQtyReq" class="form-control text-center mx-1 cam-qty-input cam-qty-req" value="@item.ItemQtyReq" min="0" style="width:60px;" data-index="@j" />
+									<button type="button" class="btn btn-success btn-sm ms-2 cam-qty-plus"><i class="bi bi-plus"></i></button>
+									<span class="ms-3 fw-semibold">@item.ItemName</span>
+									@if (!string.IsNullOrEmpty(item.ItemDesc))
+									{
+										<span class="ms-2 text-muted small">(@item.ItemDesc)</span>
+									}
 								</div>
-								<div>
-									<label class="form-label">Remarks</label>
-									<textarea class="form-control" placeholder="Enter remarks..."></textarea>
+								<div class="cam-extra-section card mt-2 p-3" style="display:@(item.ItemQtyReq > 0 ? "block" : "none");">
+									<div class="mb-2">
+										<label class="form-label">Images</label>
+										<input type="file" class="form-control mb-2 cam-upload-input" multiple accept="image/*" style="display:none;" />
+										<button type="button" class="btn btn-primary me-2 cam-take-photo-btn"><i class="bi bi-camera"></i> Take Photo</button>
+										<button type="button" class="btn btn-secondary cam-gallery-btn"><i class="bi bi-images"></i> Gallery</button>
+										<div class="cam-preview mt-2 d-flex flex-wrap gap-2"></div>
+									</div>
+									<div>
+										<label class="form-label">Remarks</label>
+										<textarea name="ItemLists[@j].Remarks" class="form-control" placeholder="Enter remarks...">@item.Remarks</textarea>
+									</div>
 								</div>
 							</div>
+						}
+					}
+					else
+					{
+						<div class="col-12">
+							<p class="text-muted">No items found in the database for this item type.</p>
 						</div>
 					}
 				</div>
 				<div class="row mt-3">
-					<div class="col-md-8">
-						<input type="text" class="form-control" placeholder="Add Other New Devices" />
-					</div>
-					<div class="col-md-4">
-						<button type="button" class="btn btn-primary"><i class="bi bi-plus"></i></button>
+					<div class="col-12">
+						<label class="form-label">Mounting Details (Overall)</label>
+						<textarea class="form-control" name="MountingDetails" placeholder="Location, visibility, obstructions, sunlight, dust, vibration..." rows="3"></textarea>
 					</div>
 				</div>
-				<div class="row mt-3">
-					<div class="col-12">
-						<textarea class="form-control" placeholder="Mounting Details (Overall)
-                            Location, visibility, obstructions, sunlight, dust, vibration..." rows="2"></textarea>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+				<div class="row mt-4">
+					<div class="col-12 text-end">
+						<button type="submit" class="btn btn-primary me-2">
+							<i class="bi bi-check-circle me-2"></i> Save Survey Data
+						</button>
+						<a href="@Url.Action("Index", "SurveyDetails", new { surveyId = (Model?.SurveyID ?? 0), locId = (Model?.LocID ?? 0) })" class="btn btn-secondary">
+							<i class="bi bi-x-circle me-2"></i> Cancel
+						</a>
+					</div>
+				</div>
 		</div>
 	</div>
 </div>
+			</div>
+		</div>
+    </div>
+</form>
 
 <!-- Camera Capture Modal -->
 <div id="camDeviceVideoModal" class="modal fade" tabindex="-1">

@@ -23,6 +23,7 @@ namespace AnalyticaDocs.Repo
                 cmd.Parameters.AddWithValue("@IsActive", obj.ISActive);
                 cmd.Parameters.AddWithValue("@RoleID", obj.RoleId);
                 cmd.Parameters.AddWithValue("@CreateBy", obj.CreateBy);
+                cmd.Parameters.AddWithValue("@EmpID", obj.EmpID);
 
                 con.Open();
                 int Resut = cmd.ExecuteNonQuery();
@@ -55,6 +56,7 @@ namespace AnalyticaDocs.Repo
                 cmd.Parameters.AddWithValue("@IsActive", obj.ISActive);
                 cmd.Parameters.AddWithValue("@RoleID", obj.RoleId);
                 cmd.Parameters.AddWithValue("@CreateBy", obj.CreateBy);
+                cmd.Parameters.AddWithValue("@EmpID", obj.EmpID);
 
                 con.Open();
                 int result = cmd.ExecuteNonQuery();

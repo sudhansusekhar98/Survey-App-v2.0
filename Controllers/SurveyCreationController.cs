@@ -27,54 +27,16 @@ namespace SurveyApp.Controllers
                 return View();
             }
             
-        // GET: SurveyCreation/Announcement
-        public IActionResult Announcement()
-            {
-                return View();
-            }
-        public IActionResult NetworkSwitch()
-        {
-            return View();
-        }
-        public IActionResult PatchPanel()
-        {
-            return View();
-        }
-        public IActionResult Transreceiver()
-        {
-            return View();
-        }
-        public IActionResult Rack()
-        {
-            return View();
-        }
-
-        public IActionResult UPS()
-        {
-            return View();
-        }
-        public IActionResult Cable()
-        {
-            return View();
-        }
-
-        public IActionResult Traffic()
-        {
-            return View();
-        }
-
-        public IActionResult PoleInfrastructure()
-        {
-            return View();
-        }
 
         // GET: SurveyCreation/Index - List all surveys
         public IActionResult Index()
         {
+            var result = _util.CheckAuthorizationAll(this, 103, null,null,"View");
+            //if (result != null) return result;
+            int UserID = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
             try
             {
-                var surveys = _surveyRepository.GetAllSurveys() ?? new List<SurveyModel>();
-
+                var surveys = _surveyRepository.GetAllSurveys(UserID) ?? new List<SurveyModel>();
                 return View(surveys);
             }
             catch (Exception ex)
@@ -88,6 +50,12 @@ namespace SurveyApp.Controllers
         // GET: SurveyCreation/Create
         public IActionResult Create()
         {
+            //CheckAuthorization(Controller controller, int RightsId, int? RegionId, Int64? SurveyId, string Type)
+            //int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, null, "Create");
+            if (result != null) return result;
+
+
             ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc");
             return View("SurveyCreation", new SurveyModel());
         }
@@ -97,6 +65,8 @@ namespace SurveyApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(SurveyModel model)
         {
+
+           
             try
             {
                 if (!ModelState.IsValid)
@@ -138,6 +108,10 @@ namespace SurveyApp.Controllers
         // GET: SurveyCreation/Edit/5
         public IActionResult Edit(Int64? id)
         {
+            //int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, id, "Update");
+            if (result != null) return result;
+
             if (!id.HasValue || id.Value == 0)
             {
                 TempData["ResultMessage"] = "<strong>Info!</strong> Record Not Found.";
@@ -153,7 +127,6 @@ namespace SurveyApp.Controllers
             }
             ViewBag.Regions = new SelectList(_adminRepository.GetRegionMaster(), "RegionID", "RegionDesc", survey.RegionID);
             return View("SurveyEdit", survey); // Render full page for normal navigation
-
         }
 
         // POST: SurveyCreation/Edit
@@ -161,6 +134,10 @@ namespace SurveyApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(SurveyModel model)
         {
+            //int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, model.RegionID, model.SurveyId, "Update");
+            if (result != null) return result;
+
             try
             {
                 if (!ModelState.IsValid)
@@ -174,9 +151,9 @@ namespace SurveyApp.Controllers
                 // Set CreatedBy from session
                 model.CreatedBy = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
 
-                bool result = _surveyRepository.UpdateSurvey(model);
+                bool isSaved = _surveyRepository.UpdateSurvey(model);
 
-                if (result)
+                if (isSaved)
                 {
                     TempData["ResultMessage"] = "<strong>Success!</strong> Survey updated successfully.";
                     TempData["ResultType"] = "success";
@@ -204,11 +181,15 @@ namespace SurveyApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Delete(Int64 id)
         {
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, id, "Delete");
+            if (result != null) return Json(new { success = false, message = "Unauthorized" });
+
             try
             {
-                bool result = _surveyRepository.DeleteSurvey(id);
+                bool isDeleted = _surveyRepository.DeleteSurvey(id);
 
-                if (result)
+                if (isDeleted)
                 {
                     return Json(new { success = true, message = "Survey deleted successfully." });
                 }
@@ -226,6 +207,10 @@ namespace SurveyApp.Controllers
         //GET: SurveyCreation/SurveyAssignment
         public IActionResult SurveyAssignment(Int64 surveyId)
         {
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "View");
+            if (result != null) return result;
+
             var assignments = _surveyRepository.GetSurveyAssignments(surveyId) ?? new List<SurveyAssignmentModel>();
             var survey = _surveyRepository.GetSurveyById(surveyId); 
             ViewBag.SurveyName = survey?.SurveyName;
@@ -243,6 +228,10 @@ namespace SurveyApp.Controllers
         // GET: SurveyCreation/CreateSurveyAssignment
         public IActionResult CreateSurveyAssignment(Int64 surveyId)
         {
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "Create");
+            if (result != null) return result;
+
             var model = new SurveyAssignmentModel { SurveyID = surveyId };
             ViewBag.SurveyID = surveyId;
             
@@ -256,6 +245,10 @@ namespace SurveyApp.Controllers
                 [ValidateAntiForgeryToken]
                 public IActionResult CreateSurveyAssignment(SurveyAssignmentModel model)
                 {
+                    int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+                    var result = _util.CheckAuthorizationAll(this, 103, null, model.SurveyID, "Create");
+                    if (result != null) return result;
+
                     try
                     {
                         if (!ModelState.IsValid)
@@ -311,6 +304,10 @@ namespace SurveyApp.Controllers
         // GET: SurveyCreation/SurveyLocation
         public IActionResult SurveyLocation(Int64 surveyId, string SurveyName, int? editId)
         {
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "View");
+            if (result != null) return result;
+
             // Fetch locations for the selected survey
             var locations = _surveyRepository.GetSurveyLocationById(surveyId) ?? new List<SurveyLocationModel>();
             ViewBag.SelectedSurveyId = surveyId;
@@ -323,6 +320,11 @@ namespace SurveyApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SurveyLocation(SurveyLocationModel model, bool Isactive = false)
         {
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            string actionType = model.LocID > 0 ? "Update" : "Create";
+            var result = _util.CheckAuthorizationAll(this, 103, null, model.SurveyID, actionType);
+            if (result != null) return result;
+
             try
             {
                 // Explicitly set Isactive from the parameter
@@ -332,15 +334,15 @@ namespace SurveyApp.Controllers
                 int createdBy = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
                 model.CreateBy = createdBy;
 
-                bool result;
+                bool isSaved;
         
                 // Check if this is an update or create operation
                 if (model.LocID > 0)
                 {
                     // Update existing location
-                    result = _surveyRepository.UpdateSurveyLocation(model);
+                    isSaved = _surveyRepository.UpdateSurveyLocation(model);
             
-                    if (result)
+                    if (isSaved)
                     {
                         TempData["ResultMessage"] = "<strong>Success!</strong> Location updated successfully.";
                         TempData["ResultType"] = "success";
@@ -354,8 +356,8 @@ namespace SurveyApp.Controllers
                 else
                 {
                     // Create new location
-                    result = _surveyRepository.AddSurveyLocation(model);
-                    if (result)
+                    isSaved = _surveyRepository.AddSurveyLocation(model);
+                    if (isSaved)
                     {
                         TempData["ResultMessage"] = "<strong>Success!</strong> Location added successfully.";
                         TempData["ResultType"] = "success";
@@ -381,13 +383,17 @@ namespace SurveyApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteSurveyLocation(int locId, int surveyId, string surveyName = "")
         {
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "Delete");
+            if (result != null) return result;
+
             try
             {
-                bool result = _surveyRepository.DeleteSurveyLocation(locId);
-                TempData["ResultMessage"] = result
+                bool isDeleted = _surveyRepository.DeleteSurveyLocation(locId);
+                TempData["ResultMessage"] = isDeleted
                     ? "<strong>Success!</strong> Location deleted successfully."
                     : "<strong>Error!</strong> Failed to delete location.";
-                TempData["ResultType"] = result ? "success" : "danger";
+                TempData["ResultType"] = isDeleted ? "success" : "danger";
             }
             catch (Exception ex)
             {
@@ -414,6 +420,10 @@ namespace SurveyApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult AddSurveyLocations(Int64 surveyId, List<SurveyLocationModel> locations)
         {
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "Create");
+            if (result != null) return result;
+
             int createdBy = Convert.ToInt32(HttpContext.Session.GetString("UserID") ?? "0");
             if (locations == null || locations.Count == 0)
             {
@@ -422,9 +432,9 @@ namespace SurveyApp.Controllers
                 return RedirectToAction("SurveyLocation", new { surveyId });
             }
 
-            bool result = _surveyRepository.CreateLocationsBySurveyId(surveyId, locations, createdBy);
+            bool isSuccess = _surveyRepository.CreateLocationsBySurveyId(surveyId, locations, createdBy);
 
-            if (result)
+            if (isSuccess)
             {
                 TempData["ResultMessage"] = "<strong>Success!</strong> Locations added successfully.";
                 TempData["ResultType"] = "success";
@@ -440,6 +450,10 @@ namespace SurveyApp.Controllers
         // GET: SurveyCreation/ItemTypeMaster
         public IActionResult ItemTypeMaster(int locId, string SurveyName, Int64 surveyId)
         {
+            //int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "View");
+            if (result != null) return result;
+
             try
             {
                 var itemTypes = _surveyRepository.GetItemTypeMaster(locId) ?? new List<ItemTypeMasterModel>();
@@ -468,6 +482,10 @@ namespace SurveyApp.Controllers
         [HttpGet]
         public IActionResult ItemTypeMaster(int locId, Int64 surveyId)
         {
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "View");
+            if (result != null) return result;
+
             var formModel = new AssignedItemsModel
             {
                 SurveyId = surveyId,
@@ -482,8 +500,12 @@ namespace SurveyApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult SaveItemType(AssignedItemsModel model)
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, model.SurveyId, "Update");
             if (result != null) return Json("unauthorized");
+
+            // Get action value from form
+            var action = Request.Form["action"].ToString();
 
             if (!ModelState.IsValid)
             {
@@ -496,16 +518,27 @@ namespace SurveyApp.Controllers
             TempData["ResultMessage"] = "Device Updated for Survey";
             TempData["ResultType"] = "success";
 
-            var locations = _surveyRepository.GetSurveyLocationById(model.SurveyId) ?? new List<SurveyLocationModel>();
-            ViewBag.SelectedSurveyId = model.SurveyId;
-            //ViewBag.SelectedSurveyName = SurveyName;
-            return View("SurveyLocation", locations);
-            //return RedirectToAction("Index");
+            if (action == "start")
+            {
+                // Redirect to SurveyDetails accordion page
+                return RedirectToAction("Index", "SurveyDetails", new { surveyId = model.SurveyId, locId = model.LocID });
+            }
+            else
+            {
+                var locations = _surveyRepository.GetSurveyLocationById(model.SurveyId) ?? new List<SurveyLocationModel>();
+                ViewBag.SelectedSurveyId = model.SurveyId;
+                //ViewBag.SelectedSurveyName = SurveyName;
+                return View("SurveyLocation", locations);
+            }
         }
 
         //GET: SurveyCreation/ViewSelectedItemTypes 
         public IActionResult ViewSelectedItemTypes(int locId, Int64 surveyId, string surveyName)
         {
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, 103, null, surveyId, "View");
+            if (result != null) return result;
+
             try
             {
                 var selectedItemTypes = _surveyRepository.GetSelectedItemTypesForLocation(locId);
