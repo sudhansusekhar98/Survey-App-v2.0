@@ -8,7 +8,7 @@ namespace AnalyticaDocs.Repository
         IActionResult CheckAuthorization(Controller controller, string requiredRole);
         IActionResult CheckAuthorization(Controller controller, params string[] allowedRoles);
 
-       
+        IActionResult CheckAuthorizationAll(Controller controller, int RightsId, int? RegionId, Int64? SurveyId, string Type);
         List<DepartmentList> GetDepartment();
         List<UsersList> GetUserOptions();
 

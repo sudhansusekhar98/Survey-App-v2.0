@@ -19,7 +19,8 @@ namespace AnalyticaDocs.Controllers
         }
         public IActionResult Index()
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, rightsId, null, null, "View");
             if (result != null) return result;
 
             ViewBag.DataForGrid = _repository.GetAllDetails();
@@ -35,7 +36,10 @@ namespace AnalyticaDocs.Controllers
 
         public IActionResult Create()
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, rightsId, null, null, "Create");
+
+
             if (result != null) return result;
             return View("Create", new UserModel()); 
         }
@@ -44,7 +48,8 @@ namespace AnalyticaDocs.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(UserModel user)
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, rightsId, null, null, "Create");
             if (result != null) return result;
 
             if (!ModelState.IsValid)
@@ -72,7 +77,8 @@ namespace AnalyticaDocs.Controllers
         [HttpGet]
         public IActionResult Edit(int? id)
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, rightsId, null, null, "Update");
             if (result != null) return result;
 
             if (!id.HasValue)
@@ -91,7 +97,8 @@ namespace AnalyticaDocs.Controllers
         [ValidateAntiForgeryToken]
         public JsonResult Edit(UserModel user)
         {
-            var result = _util.CheckAuthorization(this, "101");
+            int rightsId = Convert.ToInt32(HttpContext.Session.GetString("RoleId") ?? "101");
+            var result = _util.CheckAuthorizationAll(this, rightsId, null, null, "Update");
             if (result != null) return Json("unauthorized");
 
             if (!ModelState.IsValid)

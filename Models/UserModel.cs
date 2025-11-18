@@ -27,6 +27,11 @@ namespace AnalyticaDocs.Models
         [Required]
         public int RoleId { get; set; }
 
+        [DisplayName("Employee ID")]
+        [Required]
+        public int EmpID { get; set; }
+
+
         [DisplayName("Status")]
         [Required] public string ISActive { get; set; } = null!;
 
@@ -39,6 +44,12 @@ namespace AnalyticaDocs.Models
         [NotMapped]
         public string? ISActivedesc { get; set; }
 
+        public List<SelectListItem> EmployeeOptions => new List<SelectListItem>
+        {
+            new SelectListItem { Text = "", Value = "", Selected = true},
+            new SelectListItem { Text = "-- Select Emp Name --", Value = "", Selected = true},
+            
+        };
 
         public List<SelectListItem> StatusOptions => new List<SelectListItem>
         {

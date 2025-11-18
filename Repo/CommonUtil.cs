@@ -46,6 +46,64 @@ namespace AnalyticaDocs.Repository
             return null;
         }
 
+        public IActionResult CheckAuthorizationAll(Controller controller, int RightsId, int? RegionId, Int64? SurveyId, string Type)
+        {
+            var sessionUserId = controller.HttpContext.Session.GetString("UserID");
+            var sessionRoleId = controller.HttpContext.Session.GetString("RoleId");
+
+            // ⏱️ Session Timeout Check
+            if (string.IsNullOrEmpty(sessionUserId) || string.IsNullOrEmpty(sessionRoleId))
+            {
+                return controller.View("~/Views/Shared/SessionTimeout.cshtml");
+            }
+
+            bool IsAuthorized = CheckUserRightsScalar(Convert.ToInt32(sessionUserId), RightsId, RegionId, SurveyId, Type);
+
+            // 🔐 Role Authorization Check
+            if (!IsAuthorized)
+            {
+                return controller.View("~/Views/Shared/Unauthorized.cshtml");
+            }
+
+            // Authorized
+            return null;
+        }
+
+        public bool CheckUserRightsScalar(int sessionUserId, int rightsId, int? regionId, long? surveyId, string type)
+        {
+            try
+            {
+                using var con = new SqlConnection(DBConnection.ConnectionString);
+
+                string query = "SELECT dbo.IsAuthorized(@SessionUserId,@RightsId,@RegionId,@SurveyId,@Type)";
+
+                using var cmd = new SqlCommand(query, con);
+
+                cmd.Parameters.AddWithValue("@SessionUserId", sessionUserId);
+                cmd.Parameters.AddWithValue("@RightsId", rightsId);
+                cmd.Parameters.AddWithValue("@RegionId", regionId.HasValue ? (object)regionId.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@SurveyId", surveyId.HasValue ? (object)surveyId.Value : DBNull.Value);
+                cmd.Parameters.AddWithValue("@Type", type);
+
+                con.Open();
+                var result = cmd.ExecuteScalar();
+
+                if (result != null && int.TryParse(result.ToString(), out int isAuthorized))
+                {
+                    return isAuthorized == 1;
+                }
+                else
+                {
+                    return false;
+                }
+
+
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
         public List<DepartmentList> GetDepartment()
         {
             try

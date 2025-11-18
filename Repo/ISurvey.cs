@@ -5,7 +5,7 @@ namespace SurveyApp.Repo
 {
     public interface ISurvey
     {
-        List<SurveyModel> GetAllSurveys();
+        List<SurveyModel> GetAllSurveys(int UserId);
         SurveyModel? GetSurveyById(Int64 surveyId);
         bool AddSurvey(SurveyModel survey);
         bool UpdateSurvey(SurveyModel survey);
